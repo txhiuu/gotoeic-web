@@ -8,3 +8,4 @@ node_modules/
 .idea/
 target/
 backend/target/
+gotoeic.sql

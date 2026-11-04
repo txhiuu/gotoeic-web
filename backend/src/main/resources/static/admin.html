@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GoToeic Admin - Bảng điều khiển Quản trị</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent: #2563eb;
+            --surface: #ffffff;
+            --border-line: #e2e8f0;
+            --bg-body: #f8fafc;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: #1e293b;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .admin-layout {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: #cbd5e1;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .side-btn {
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 0.75rem 1rem;
+            border-radius: 0.55rem;
+            font-weight: 500;
+            font-size: 0.93rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .side-btn:hover {
+            background: var(--sidebar-hover);
+            color: #ffffff;
+        }
+
+        .side-btn.active {
+            background: var(--accent);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .clean-card {
+            background: var(--surface);
+            border: 1px solid var(--border-line);
+            border-radius: 0.9rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 0.55rem;
+            border-color: #cbd5e1;
+            padding: 0.55rem 0.8rem;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+        }
+
+        .modal-content {
+            border-radius: 1rem;
+            border: none;
+        }
+
+        .table> :not(caption)>*>* {
+            padding: 0.85rem 1rem;
+        }
+
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 0.85rem;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dropzone:hover {
+            border-color: var(--accent);
+            background: #eff6ff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-layout">
+        <!-- ================= SIDEBAR QUẢN TRỊ BÊN TRÁI ================= -->
+        <aside class="sidebar p-3">
+            <div
+                class="d-flex align-items-center gap-2 text-white fs-5 fw-bold pb-3 mb-3 border-bottom border-secondary">
+                <span class="badge bg-primary p-2 rounded-3"><i class="bi bi-mortarboard-fill"></i></span>
+                <span>GoToeic Admin</span>
+            </div>
+
+            <div class="flex-grow-1">
+                <!-- Use Case: Xem bảng điều khiển, thống kê, báo cáo -->
+                <button class="side-btn active" id="btnDash" onclick="switchAdminTab('dash')">
+                    <i class="bi bi-speedometer2 me-2 fs-6"></i>Bảng điều khiển
+                </button>
+                <!-- Use Case: Quản lý ngân hàng câu hỏi -->
+                <button class="side-btn" id="btnQuest" onclick="switchAdminTab('quest')">
+                    <i class="bi bi-database-check me-2 fs-6"></i>Ngân hàng câu hỏi
+                </button>
+                <!-- Use Case: Tạo và quản lý đề thi thử -->
+                <button class="side-btn" id="btnExam" onclick="switchAdminTab('exam')">
+                    <i class="bi bi-journal-text me-2 fs-6"></i>Quản lý đề thi
+                </button>
+                <!-- Use Case: Quản lý Part TOEIC, chủ đề và mức độ câu hỏi -->
+                <button class="side-btn" id="btnPart" onclick="switchAdminTab('part')">
+                    <i class="bi bi-layers me-2 fs-6"></i>Part &amp; Chủ đề
+                </button>
+                <!-- Use Case: Quản lý tài khoản và quyền người dùng -->
+                <button class="side-btn" id="btnUser" onclick="switchAdminTab('user')">
+                    <i class="bi bi-people me-2 fs-6"></i>Tài khoản &amp; Quyền
+                </button>
+                <!-- Use Case: Nhập, xuất dữ liệu câu hỏi -->
+                <button class="side-btn" id="btnImp" onclick="switchAdminTab('imp')">
+                    <i class="bi bi-arrow-left-right me-2 fs-6"></i>Nhập / Xuất dữ liệu
+                </button>
+            </div>
+
+            <div class="pt-3 border-top border-secondary">
+                <a href="index.html" class="btn btn-outline-light btn-sm w-100 py-2">
+                    <i class="bi bi-box-arrow-left me-1"></i>Đăng xuất về Trang chủ
+                </a>
+            </div>
+        </aside>
+
+        <!-- ================= KHU VỰC NỘI DUNG CHÍNH CỦA ADMIN ================= -->
+        <div class="flex-grow-1 d-flex flex-column" style="overflow-x: hidden;">
+            <!-- Top header -->
+            <header class="bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-0" id="adminHeaderTitle">Bảng điều khiển &amp; Thống kê</h5>
+                    <small class="text-secondary" id="adminHeaderSub">Tổng quan hệ thống thi và quản trị học
+                        viên</small>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-success-subtle text-success py-2 px-3 rounded-pill fw-semibold">
+                        <i class="bi bi-shield-check me-1"></i>Đang đăng nhập: Quản trị viên
+                    </span>
+                    <img src="https://ui-avatars.com/api/?name=Admin+Toeic&background=0f172a&color=fff"
+                        class="rounded-circle border" width="38" height="38" alt="Avatar" />
+                </div>
+            </header>
+
+            <div class="p-4 flex-grow-1">
+
+                <!-- 1. TAB: BẢNG ĐIỀU KHIỂN & THỐNG KÊ (DASHBOARD) -->
+                <div id="viewDash">
+                    <!-- 4 Thẻ KPI thống kê theo CSDL -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="clean-card p-3">
+                                <div class="small text-secondary fw-semibold">Tổng tài khoản (users)</div>
+                                <div class="fs-3 fw-bold text-primary mt-1">2</div>
+                                <div class="small text-muted mt-1">1 Admin, 1 Sinh viên</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="clean-card p-3">
+                                <div class="small text-secondary fw-semibold">Ngân hàng câu hỏi (questions)</div>
+                                <div class="fs-3 fw-bold text-success mt-1">2</div>
+                                <div class="small text-muted mt-1">Trong CSDL bảng questions</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="clean-card p-3">
+                                <div class="small text-secondary fw-semibold">Đề thi (exams)</div>
+                                <div class="fs-3 fw-bold text-dark mt-1">1</div>
+                                <div class="small text-muted mt-1">Đề thi thử TOEIC Full Test 01</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="clean-card p-3">
+                                <div class="small text-secondary fw-semibold">Điểm trung bình (score)</div>
+                                <div class="fs-3 fw-bold text-info mt-1">5.0 / 10</div>
+                                <div class="small text-success mt-1">Từ bảng exam_results</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Phân bố phổ điểm sinh viên -->
+                        <div class="col-lg-7">
+                            <div class="clean-card p-4 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0">Phổ điểm thi thử gần đây của sinh viên</h6>
+                                    <span class="badge bg-light text-dark border">Tháng 11/2026</span>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>Trên 800 điểm (Xuất sắc)</span><span>340 sinh viên (19%)</span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-success" style="width: 19%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>650 - 795 điểm (Khá - Giỏi)</span><span>720 sinh viên (40%)</span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-primary" style="width: 40%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>500 - 645 điểm (Đạt chuẩn đầu ra)</span><span>540 sinh viên (30%)</span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-info" style="width: 30%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>Dưới 500 điểm (Cần ôn thêm)</span><span>220 sinh viên (11%)</span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 11%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hoạt động gần đây -->
+                        <div class="col-lg-5">
+                            <div class="clean-card p-4 h-100">
+                                <h6 class="fw-bold mb-3">Lịch sử nộp bài gần đây (exam_results)</h6>
+                                <div class="list-group list-group-flush small">
+                                    <div
+                                        class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold">Nguyễn Văn Sinh Viên (student@gmail.com)</div>
+                                            <div class="text-muted">Đề thi thử TOEIC Full Test 01</div>
+                                        </div>
+                                        <span class="badge bg-success-subtle text-success fs-6">5.0 điểm (1/2 câu)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. TAB: QUẢN LÝ NGÂN HÀNG CÂU HỎI -->
+                <div id="viewQuest" class="d-none">
+                    <div class="clean-card p-4">
+                        <div class="row align-items-center justify-content-between g-3 mb-3">
+                            <div class="col-md-7 d-flex gap-2">
+                                <input type="text" id="questSearch" class="form-control"
+                                    placeholder="Tìm theo nội dung câu hỏi, từ khóa..."
+                                    onkeyup="filterQuestionsTable()" />
+                                <select id="questPartFilter" class="form-select w-auto"
+                                    onchange="filterQuestionsTable()">
+                                    <option value="all">Tất cả Part</option>
+                                    <option value="Part 1">Part 1: Tranh</option>
+                                    <option value="Part 2">Part 2: Hỏi đáp</option>
+                                    <option value="Part 5">Part 5: Điền câu</option>
+                                    <option value="Part 6">Part 6: Điền đoạn</option>
+                                    <option value="Part 7">Part 7: Đọc hiểu</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5 text-md-end">
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#questionModal">
+                                    <i class="bi bi-plus-circle me-1"></i>Thêm câu hỏi mới
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0" id="questTable">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Part TOEIC</th>
+                                        <th>Chủ đề</th>
+                                        <th>Mức độ</th>
+                                        <th>Nội dung câu hỏi</th>
+                                        <th>Đáp án đúng</th>
+                                        <th class="text-end">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="qTableBody">
+                                    <tr>
+                                        <td>#1</td>
+                                        <td><span class="badge bg-primary-subtle text-primary">Part 5</span></td>
+                                        <td>Đề 1</td>
+                                        <td><span class="badge bg-success-subtle text-success">Dễ</span></td>
+                                        <td>The manager requested that all employees _____ the safety training.</td>
+                                        <td><span class="badge bg-success-subtle text-success">A (attend)</span></td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-secondary py-1 px-2"
+                                                onclick="alert('Xem/Sửa câu hỏi #1')"><i
+                                                    class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-sm btn-outline-danger py-1 px-2"
+                                                onclick="deleteTableRow(this)"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>#2</td>
+                                        <td><span class="badge bg-primary-subtle text-primary">Part 5</span></td>
+                                        <td>Đề 1</td>
+                                        <td><span class="badge bg-success-subtle text-success">Dễ</span></td>
+                                        <td>The company will _____ a new product line next month.</td>
+                                        <td><span class="badge bg-success-subtle text-success">A (launch)</span></td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-secondary py-1 px-2"
+                                                onclick="alert('Xem/Sửa câu hỏi #2')"><i
+                                                    class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-sm btn-outline-danger py-1 px-2"
+                                                onclick="deleteTableRow(this)"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. TAB: TẠO VÀ QUẢN LÝ ĐỀ THI THỬ -->
+                <div id="viewExam" class="d-none">
+                    <div class="clean-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">Danh sách Đề thi thử TOEIC trong hệ thống</h6>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createExamModal">
+                                <i class="bi bi-plus-circle me-1"></i>Tạo đề thi mới
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0" id="examManagementTable">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>Mã đề</th>
+                                        <th>Tên đề thi</th>
+                                        <th>Kỹ năng</th>
+                                        <th>Thời gian</th>
+                                        <th>Số câu</th>
+                                        <th>Lượt thi</th>
+                                        <th>Trạng thái</th>
+                                        <th class="text-end">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="examTbody">
+                                    <tr>
+                                        <td><code>ID 1</code></td>
+                                        <td class="fw-semibold">Đề thi thử TOEIC Full Test 01</td>
+                                        <td>Nghe &amp; Đọc</td>
+                                        <td>120 phút</td>
+                                        <td>200 câu</td>
+                                        <td>1 lượt</td>
+                                        <td><span class="badge bg-success-subtle text-success">Công khai</span></td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-secondary py-1 px-2"
+                                                onclick="alert('Sửa đề ID 1')"><i
+                                                    class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-sm btn-outline-danger py-1 px-2"
+                                                onclick="deleteTableRow(this)"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. TAB: QUẢN LÝ PART TOEIC, CHỦ ĐỀ & MỨC ĐỘ CÂU HỎI -->
+                <div id="viewPart" class="d-none">
+                    <div class="row g-4">
+                        <div class="col-lg-7">
+                            <div class="clean-card p-4">
+                                <h6 class="fw-bold mb-3">Cấu trúc 7 Part TOEIC</h6>
+                                <div class="table-responsive">
+                                    <table class="table align-middle mb-0">
+                                        <thead class="table-light small">
+                                            <tr>
+                                                <th>Part</th>
+                                                <th>Tên định dạng</th>
+                                                <th>Kỹ năng</th>
+                                                <th>Số câu</th>
+                                                <th>Mức độ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Part 1</td>
+                                                <td>Mô tả tranh (Photographs)</td>
+                                                <td>Listening</td>
+                                                <td>6 câu</td>
+                                                <td><span class="badge bg-success-subtle text-success">Dễ</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Part 2</td>
+                                                <td>Hỏi &amp; Đáp (Question-Response)</td>
+                                                <td>Listening</td>
+                                                <td>25 câu</td>
+                                                <td><span class="badge bg-success-subtle text-success">Dễ - TB</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Part 3</td>
+                                                <td>Hội thoại ngắn (Conversations)</td>
+                                                <td>Listening</td>
+                                                <td>39 câu</td>
+                                                <td><span class="badge bg-warning-subtle text-warning">Trung bình</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Part 4</td>
+                                                <td>Bài nói ngắn (Short Talks)</td>
+                                                <td>Listening</td>
+                                                <td>30 câu</td>
+                                                <td><span class="badge bg-danger-subtle text-danger">TB - Khó</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Part 5</td>
+                                                <td>Hoàn thành câu (Incomplete Sentences)</td>
+                                                <td>Reading</td>
+                                                <td>30 câu</td>
+                                                <td><span class="badge bg-success-subtle text-success">Dễ - TB</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Part 6</td>
+                                                <td>Hoàn thành đoạn văn (Text Completion)</td>
+                                                <td>Reading</td>
+                                                <td>16 câu</td>
+                                                <td><span class="badge bg-warning-subtle text-warning">Trung bình</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Part 7</td>
+                                                <td>Đọc hiểu văn bản (Reading Comprehension)</td>
+                                                <td>Reading</td>
+                                                <td>54 câu</td>
+                                                <td><span class="badge bg-danger-subtle text-danger">Khó</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-5">
+                            <div class="clean-card p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0">Danh sách Chủ đề (Topics)</h6>
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#topicModal">
+                                        <i class="bi bi-plus-lg me-1"></i>Thêm chủ đề
+                                    </button>
+                                </div>
+                                <ul class="list-group list-group-flush small" id="topicList">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span><i class="bi bi-bookmark text-primary me-2"></i>Grammar &amp; Word
+                                            Forms</span>
+                                        <span class="badge bg-light text-dark border">420 câu</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span><i class="bi bi-bookmark text-primary me-2"></i>Contracts &amp;
+                                            Negotiations</span>
+                                        <span class="badge bg-light text-dark border">260 câu</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span><i class="bi bi-bookmark text-primary me-2"></i>Marketing &amp;
+                                            Sales</span>
+                                        <span class="badge bg-light text-dark border">310 câu</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span><i class="bi bi-bookmark text-primary me-2"></i>Office Procedures &amp;
+                                            HR</span>
+                                        <span class="badge bg-light text-dark border">380 câu</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span><i class="bi bi-bookmark text-primary me-2"></i>Travel &amp; Business
+                                            Trips</span>
+                                        <span class="badge bg-light text-dark border">190 câu</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. TAB: QUẢN LÝ TÀI KHOẢN VÀ PHÂN QUYỀN -->
+                <div id="viewUser" class="d-none">
+                    <div class="clean-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">Danh sách Tài khoản người dùng &amp; Phân quyền</h6>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal">
+                                <i class="bi bi-person-plus me-1"></i>Thêm tài khoản mới
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0" id="userTable">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>Mã người dùng</th>
+                                        <th>Họ và tên</th>
+                                        <th>Email</th>
+                                        <th>Vai trò</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày tạo</th>
+                                        <th class="text-end">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userTbody">
+                                    <tr>
+                                        <td><code>ID 1</code></td>
+                                        <td class="fw-semibold">Quản Trị Viên</td>
+                                        <td>admin@gmail.com</td>
+                                        <td><span class="badge bg-danger-subtle text-danger">ADMIN</span></td>
+                                        <td><span class="badge bg-success-subtle text-success">Hoạt động</span></td>
+                                        <td>03/11/2026</td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-secondary py-1 px-2" disabled><i
+                                                    class="bi bi-shield-lock"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>ID 2</code></td>
+                                        <td class="fw-semibold">Nguyễn Văn Sinh Viên</td>
+                                        <td>student@gmail.com</td>
+                                        <td><span class="badge bg-primary-subtle text-primary">STUDENT</span></td>
+                                        <td><span class="badge bg-success-subtle text-success">Hoạt động</span></td>
+                                        <td>03/11/2026</td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-secondary py-1 px-2"
+                                                onclick="toggleUserRole(this)">Đổi quyền</button>
+                                            <button class="btn btn-sm btn-outline-warning py-1 px-2"
+                                                onclick="toggleUserStatus(this)">Khóa</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. TAB: NHẬP / XUẤT DỮ LIỆU CÂU HỎI -->
+                <div id="viewImp" class="d-none">
+                    <div class="row g-4">
+                        <!-- Nhập file Excel/CSV -->
+                        <div class="col-lg-6">
+                            <div class="clean-card p-4 h-100">
+                                <h6 class="fw-bold mb-2"><i
+                                        class="bi bi-file-earmark-arrow-up text-primary me-2"></i>Nhập câu hỏi từ File
+                                    Excel / CSV</h6>
+                                <p class="text-secondary small mb-3">Tải lên file danh sách câu hỏi hàng loạt theo mẫu
+                                    chuẩn để nhập vào ngân hàng dữ liệu.</p>
+
+                                <div class="dropzone mb-3" onclick="document.getElementById('fileUploadInput').click()">
+                                    <i class="bi bi-cloud-arrow-up text-primary fs-1"></i>
+                                    <div class="fw-semibold mt-2">Kéo thả file Excel vào đây hoặc bấm để chọn file</div>
+                                    <div class="small text-muted">Hỗ trợ định dạng .xlsx, .xls, .csv (Tối đa 10MB)</div>
+                                    <input type="file" id="fileUploadInput" class="d-none" accept=".xlsx,.xls,.csv"
+                                        onchange="handleFileSelect(this)" />
+                                </div>
+
+                                <div id="fileUploadInfo" class="alert alert-info py-2 small d-none mb-3">
+                                    <i class="bi bi-file-earmark-check me-1"></i>Đã chọn file: <strong
+                                        id="fileName"></strong>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary w-100" onclick="simulateImport()">
+                                        <i class="bi bi-upload me-1"></i>Bắt đầu Nhập dữ liệu
+                                    </button>
+                                    <button class="btn btn-outline-secondary text-nowrap"
+                                        onclick="alert('Đang tải file mẫu Template_Cau_Hoi_TOEIC.xlsx...')">
+                                        <i class="bi bi-download me-1"></i>Tải file mẫu
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Xuất dữ liệu ra file -->
+                        <div class="col-lg-6">
+                            <div class="clean-card p-4 h-100">
+                                <h6 class="fw-bold mb-2"><i
+                                        class="bi bi-file-earmark-arrow-down text-success me-2"></i>Xuất dữ liệu &amp;
+                                    Báo cáo</h6>
+                                <p class="text-secondary small mb-3">Xuất dữ liệu ngân hàng câu hỏi, bảng điểm thi thử
+                                    ra các định dạng chuẩn.</p>
+
+                                <div class="d-grid gap-3">
+                                    <div
+                                        class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold">Ngân hàng câu hỏi (Excel)</div>
+                                            <div class="small text-muted">Toàn bộ 2,450 câu hỏi kèm đáp án &amp; giải
+                                                thích</div>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary"
+                                            onclick="alert('Đang xuất file Excel Ngan_Hang_Cau_Hoi_TOEIC.xlsx...')">
+                                            <i class="bi bi-download me-1"></i>Xuất file
+                                        </button>
+                                    </div>
+
+                                    <div
+                                        class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold">Bảng điểm thi thử sinh viên (CSV)</div>
+                                            <div class="small text-muted">Dữ liệu kết quả thi, thời gian nộp bài của
+                                                sinh viên</div>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-success"
+                                            onclick="alert('Đang xuất file CSV Bang_Diem_Sinh_Vien.csv...')">
+                                            <i class="bi bi-download me-1"></i>Xuất CSV
+                                        </button>
+                                    </div>
+
+                                    <div
+                                        class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold">Đề thi in thử nghiệm (PDF)</div>
+                                            <div class="small text-muted">Đề thi định dạng chuẩn kèm phiếu trả lời trắc
+                                                nghiệm</div>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                            onclick="alert('Đang xuất bản in PDF De_Thi_TOEIC_Official.pdf...')">
+                                            <i class="bi bi-file-pdf me-1"></i>Xuất PDF
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: THÊM CÂU HỎI MỚI (VALIDATION) ================= -->
+    <div class="modal fade" id="questionModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold"><i class="bi bi-plus-circle text-primary me-2"></i>Thêm Câu hỏi
+                        TOEIC mới</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="addQForm" novalidate onsubmit="handleAddQuestion(event)">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Part TOEIC *</label>
+                                <select id="qPart" class="form-select" required>
+                                    <option value="">-- Chọn Part --</option>
+                                    <option value="Part 1">Part 1: Photographs</option>
+                                    <option value="Part 2">Part 2: Question-Response</option>
+                                    <option value="Part 5" selected>Part 5: Incomplete Sentences</option>
+                                    <option value="Part 6">Part 6: Text Completion</option>
+                                    <option value="Part 7">Part 7: Reading Comprehension</option>
+                                </select>
+                                <div class="invalid-feedback">Vui lòng chọn Part TOEIC.</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Chủ đề (Topic) *</label>
+                                <input type="text" id="qTopic" class="form-control" placeholder="VD: Grammar, Contracts"
+                                    required />
+                                <div class="invalid-feedback">Vui lòng nhập chủ đề.</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Mức độ *</label>
+                                <select id="qLevel" class="form-select">
+                                    <option value="Dễ">Dễ</option>
+                                    <option value="Trung bình" selected>Trung bình</option>
+                                    <option value="Khó">Khó</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Nội dung câu hỏi *</label>
+                                <textarea id="qContent" class="form-control" rows="2"
+                                    placeholder="Nhập câu hỏi (dùng dấu _______ để đại diện cho chỗ trống)..."
+                                    required></textarea>
+                                <div class="invalid-feedback">Nội dung câu hỏi phải có ít nhất 10 ký tự.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Lựa chọn A *</label>
+                                <input type="text" id="optA" class="form-control" placeholder="Lựa chọn A" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Lựa chọn B *</label>
+                                <input type="text" id="optB" class="form-control" placeholder="Lựa chọn B" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Lựa chọn C *</label>
+                                <input type="text" id="optC" class="form-control" placeholder="Lựa chọn C" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Lựa chọn D *</label>
+                                <input type="text" id="optD" class="form-control" placeholder="Lựa chọn D" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Đáp án đúng *</label>
+                                <select id="qCorrect" class="form-select" required>
+                                    <option value="">-- Chọn đáp án --</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                </select>
+                                <div class="invalid-feedback">Vui lòng chọn đáp án đúng.</div>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label small fw-semibold">Giải thích chi tiết</label>
+                                <input type="text" id="qExpl" class="form-control"
+                                    placeholder="Giải thích lý do đáp án đúng..." />
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-primary w-100 py-2">Lưu vào Ngân hàng câu
+                                    hỏi</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: TẠO ĐỀ THI MỚI (VALIDATION) ================= -->
+    <div class="modal fade" id="createExamModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold"><i class="bi bi-journal-plus text-primary me-2"></i>Tạo Đề thi thử
+                        mới</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="createExamForm" novalidate onsubmit="handleCreateExam(event)">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Tên đề thi *</label>
+                            <input type="text" id="exName" class="form-control"
+                                placeholder="VD: ETS TOEIC Practice Test 03" required />
+                            <div class="invalid-feedback">Tên đề thi không được để trống (từ 5 ký tự).</div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Mã đề thi *</label>
+                                <input type="text" id="exCode" class="form-control" placeholder="VD: ETS-2026-03"
+                                    required />
+                                <div class="invalid-feedback">Mã đề không hợp lệ.</div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Thời gian (phút) *</label>
+                                <input type="number" id="exDuration" class="form-control" value="120" min="10" max="180"
+                                    required />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Kỹ năng đánh giá</label>
+                            <select id="exSkills" class="form-select">
+                                <option value="Nghe & Đọc">Nghe &amp; Đọc (Listening &amp; Reading)</option>
+                                <option value="Nói & Viết">Nói &amp; Viết (Speaking &amp; Writing)</option>
+                                <option value="Nghe">Chuyên Nghe (Listening)</option>
+                                <option value="Đọc">Chuyên Đọc (Reading)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Trạng thái phát hành</label>
+                            <select id="exStatus" class="form-select">
+                                <option value="Công khai">Công khai (Sinh viên có thể làm bài)</option>
+                                <option value="Bản nháp">Bản nháp (Chỉ admin xem)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">Tạo đề thi</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: THÊM CHỦ ĐỀ MỚI ================= -->
+    <div class="modal fade" id="topicModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold">Thêm Chủ đề mới</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="addTopicForm" onsubmit="handleAddTopic(event)">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Tên chủ đề *</label>
+                            <input type="text" id="topName" class="form-control" placeholder="VD: Logistics & Shipping"
+                                required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Part áp dụng</label>
+                            <select class="form-select">
+                                <option>Tất cả các Part</option>
+                                <option>Part 1, 2, 3, 4 (Listening)</option>
+                                <option>Part 5, 6, 7 (Reading)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Lưu chủ đề</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: THÊM TÀI KHOẢN MỚI (VALIDATION) ================= -->
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold"><i class="bi bi-person-plus text-primary me-2"></i>Thêm Tài khoản
+                        mới</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="addUserForm" novalidate onsubmit="handleAddUser(event)">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Họ và tên (full_name) *</label>
+                            <input type="text" id="uName" class="form-control" placeholder="VD: Hoàng Minh Đạt"
+                                required />
+                            <div class="invalid-feedback">Họ tên tối thiểu 2 ký tự.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Email tài khoản (email) *</label>
+                            <input type="email" id="uEmail" class="form-control" placeholder="user@gmail.com" required />
+                            <div class="invalid-feedback">Email không đúng định dạng.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Vai trò / Phân quyền (role)</label>
+                            <select id="uRole" class="form-select">
+                                <option value="STUDENT">STUDENT (Sinh viên)</option>
+                                <option value="ADMIN">ADMIN (Quản trị viên)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">Thêm người dùng</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        /* ================= CHUYỂN ĐỔI TAB QUẢN TRỊ ================= */
+        const TABS = {
+            dash: { title: 'Bảng điều khiển & Thống kê', sub: 'Tổng quan hệ thống thi và quản trị học viên' },
+            quest: { title: 'Quản lý Ngân hàng Câu hỏi', sub: 'Thêm, sửa, tìm kiếm câu hỏi theo Part và chủ đề' },
+            exam: { title: 'Tạo và Quản lý Đề thi thử', sub: 'Cấu hình thời gian, bộ đề thi thử công khai cho sinh viên' },
+            part: { title: 'Quản lý Part TOEIC & Chủ đề', sub: 'Cấu trúc bài thi, độ khó và các chủ đề chuyên sâu' },
+            user: { title: 'Quản lý Tài khoản & Phân quyền', sub: 'Danh sách sinh viên, quản trị viên và trạng thái kích hoạt' },
+            imp: { title: 'Nhập / Xuất dữ liệu câu hỏi', sub: 'Nhập hàng loạt qua Excel/CSV và xuất báo cáo kết quả' }
+        };
+
+        function switchAdminTab(tabKey) {
+            // Active nút sidebar
+            const btnMap = { dash: 'btnDash', quest: 'btnQuest', exam: 'btnExam', part: 'btnPart', user: 'btnUser', imp: 'btnImp' };
+            Object.values(btnMap).forEach(bId => document.getElementById(bId).classList.remove('active'));
+            document.getElementById(btnMap[tabKey]).classList.add('active');
+
+            // Hiện view tương ứng
+            const viewMap = { dash: 'viewDash', quest: 'viewQuest', exam: 'viewExam', part: 'viewPart', user: 'viewUser', imp: 'viewImp' };
+            Object.values(viewMap).forEach(vId => document.getElementById(vId).classList.add('d-none'));
+            document.getElementById(viewMap[tabKey]).classList.remove('d-none');
+
+            // Header
+            const info = TABS[tabKey];
+            document.getElementById('adminHeaderTitle').textContent = info.title;
+            document.getElementById('adminHeaderSub').textContent = info.sub;
+        }
+
+        /* ================= NGÂN HÀNG CÂU HỎI ================= */
+        function filterQuestionsTable() {
+            const text = document.getElementById('questSearch').value.toLowerCase().trim();
+            const part = document.getElementById('questPartFilter').value;
+            const rows = document.querySelectorAll('#qTableBody tr');
+
+            rows.forEach(r => {
+                const rText = r.textContent.toLowerCase();
+                const rPart = r.children[1].textContent.trim();
+
+                const matchText = rText.includes(text);
+                const matchPart = (part === 'all' || rPart.includes(part));
+
+                r.style.display = (matchText && matchPart) ? '' : 'none';
+            });
+        }
+
+        function handleAddQuestion(e) {
+            e.preventDefault();
+            const part = document.getElementById('qPart').value;
+            const topic = document.getElementById('qTopic').value.trim();
+            const level = document.getElementById('qLevel').value;
+            const content = document.getElementById('qContent').value.trim();
+            const correct = document.getElementById('qCorrect').value;
+
+            const v1 = part !== '';
+            const v2 = topic !== '';
+            const v3 = content.length >= 10;
+            const v4 = correct !== '';
+
+            document.getElementById('qPart').classList.toggle('is-invalid', !v1);
+            document.getElementById('qTopic').classList.toggle('is-invalid', !v2);
+            document.getElementById('qContent').classList.toggle('is-invalid', !v3);
+            document.getElementById('qCorrect').classList.toggle('is-invalid', !v4);
+
+            if (!v1 || !v2 || !v3 || !v4) return;
+
+            const tbody = document.getElementById('qTableBody');
+            tbody.insertAdjacentHTML('afterbegin', `
+            <tr>
+                <td>#${Math.floor(Math.random() * 900) + 100}</td>
+                <td><span class="badge bg-primary-subtle text-primary">${part}</span></td>
+                <td>${topic}</td>
+                <td><span class="badge bg-info-subtle text-info">${level}</span></td>
+                <td>${content}</td>
+                <td><span class="badge bg-success-subtle text-success">${correct}</span></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-secondary py-1 px-2"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteTableRow(this)"><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+        `);
+
+            bootstrap.Modal.getInstance(document.getElementById('questionModal')).hide();
+            document.getElementById('addQForm').reset();
+        }
+
+        /* ================= TẠO ĐỀ THI ================= */
+        function handleCreateExam(e) {
+            e.preventDefault();
+            const name = document.getElementById('exName').value.trim();
+            const code = document.getElementById('exCode').value.trim();
+            const duration = document.getElementById('exDuration').value;
+            const skills = document.getElementById('exSkills').value;
+            const status = document.getElementById('exStatus').value;
+
+            const v1 = name.length >= 5;
+            const v2 = code.length >= 3;
+
+            document.getElementById('exName').classList.toggle('is-invalid', !v1);
+            document.getElementById('exCode').classList.toggle('is-invalid', !v2);
+
+            if (!v1 || !v2) return;
+
+            const tbody = document.getElementById('examTbody');
+            tbody.insertAdjacentHTML('afterbegin', `
+            <tr>
+                <td><code>${code}</code></td>
+                <td class="fw-semibold">${name}</td>
+                <td>${skills}</td>
+                <td>${duration} phút</td>
+                <td>50 câu</td>
+                <td>0 lượt</td>
+                <td><span class="badge ${status === 'Công khai' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'}">${status}</span></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-secondary py-1 px-2"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteTableRow(this)"><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+        `);
+
+            bootstrap.Modal.getInstance(document.getElementById('createExamModal')).hide();
+            document.getElementById('createExamForm').reset();
+        }
+
+        /* ================= CHỦ ĐỀ ================= */
+        function handleAddTopic(e) {
+            e.preventDefault();
+            const name = document.getElementById('topName').value.trim();
+            if (!name) return;
+
+            const list = document.getElementById('topicList');
+            list.insertAdjacentHTML('afterbegin', `
+            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <span><i class="bi bi-bookmark text-primary me-2"></i>${name}</span>
+                <span class="badge bg-light text-dark border">0 câu</span>
+            </li>
+        `);
+            bootstrap.Modal.getInstance(document.getElementById('topicModal')).hide();
+            document.getElementById('addTopicForm').reset();
+        }
+
+        /* ================= TÀI KHOẢN & PHÂN QUYỀN ================= */
+        function handleAddUser(e) {
+            e.preventDefault();
+            const name = document.getElementById('uName').value.trim();
+            const email = document.getElementById('uEmail').value.trim();
+            const role = document.getElementById('uRole').value;
+
+            const v1 = name.length >= 2;
+            const v2 = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+            document.getElementById('uName').classList.toggle('is-invalid', !v1);
+            document.getElementById('uEmail').classList.toggle('is-invalid', !v2);
+
+            if (!v1 || !v2) return;
+
+            const newId = Math.floor(Math.random() * 900) + 3;
+            const tbody = document.getElementById('userTbody');
+            tbody.insertAdjacentHTML('afterbegin', `
+            <tr>
+                <td><code>ID ${newId}</code></td>
+                <td class="fw-semibold">${name}</td>
+                <td>${email}</td>
+                <td><span class="badge ${role === 'ADMIN' ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary'}">${role}</span></td>
+                <td><span class="badge bg-success-subtle text-success">Hoạt động</span></td>
+                <td>Hôm nay</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-secondary py-1 px-2" onclick="toggleUserRole(this)">Đổi quyền</button>
+                    <button class="btn btn-sm btn-outline-warning py-1 px-2" onclick="toggleUserStatus(this)">Khóa</button>
+                </td>
+            </tr>
+        `);
+
+            bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+            document.getElementById('addUserForm').reset();
+        }
+
+        function toggleUserRole(btn) {
+            const row = btn.closest('tr');
+            const roleBadge = row.children[3].querySelector('.badge');
+            if (roleBadge.textContent === 'Sinh viên') {
+                roleBadge.textContent = 'Admin';
+                roleBadge.className = 'badge bg-danger-subtle text-danger';
+            } else {
+                roleBadge.textContent = 'Sinh viên';
+                roleBadge.className = 'badge bg-primary-subtle text-primary';
+            }
+        }
+
+        function toggleUserStatus(btn) {
+            const row = btn.closest('tr');
+            const statusBadge = row.children[4].querySelector('.badge');
+            if (statusBadge.textContent === 'Hoạt động') {
+                statusBadge.textContent = 'Đã khóa';
+                statusBadge.className = 'badge bg-secondary-subtle text-secondary';
+                btn.textContent = 'Mở khóa';
+                btn.className = 'btn btn-sm btn-outline-success py-1 px-2';
+            } else {
+                statusBadge.textContent = 'Hoạt động';
+                statusBadge.className = 'badge bg-success-subtle text-success';
+                btn.textContent = 'Khóa';
+                btn.className = 'btn btn-sm btn-outline-warning py-1 px-2';
+            }
+        }
+
+        function deleteTableRow(btn) {
+            if (confirm('Bạn có chắc chắn muốn xóa mục này khỏi hệ thống?')) {
+                btn.closest('tr').remove();
+            }
+        }
+
+        /* ================= FILE IMPORT ================= */
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                const f = input.files[0];
+                document.getElementById('fileName').textContent = f.name;
+                document.getElementById('fileUploadInfo').classList.remove('d-none');
+            }
+        }
+
+        function simulateImport() {
+            const info = document.getElementById('fileUploadInfo');
+            if (info.classList.contains('d-none')) {
+                alert('Vui lòng chọn file Excel hoặc CSV trước khi nhấn Nhập dữ liệu!');
+                return;
+            }
+            alert('Đã tải lên và nhập thành công 45 câu hỏi mới vào ngân hàng câu hỏi!');
+            switchAdminTab('quest');
+        }
+    </script>
+</body>
+
+</html>

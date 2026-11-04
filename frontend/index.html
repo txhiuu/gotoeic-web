@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GoToeic - Ôn luyện TOEIC 4 kỹ năng</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
+    <style>
+        :root {
+            --ink: #111936;
+            --muted: #5c6580;
+            --bg: #f5f6fb;
+            --surface: #ffffff;
+            --line: #e3e6f0;
+            --navy: #16204f;
+            --yellow: #ffc933;
+
+            --c-listening: #0e9384;
+            --c-speaking: #e5484d;
+            --c-reading: #3e63dd;
+            --c-writing: #d97706;
+
+            --bs-body-font-family: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            --bs-body-color: var(--ink);
+            --bs-body-bg: var(--bg);
+            --bs-link-color: var(--navy);
+        }
+        html { scroll-behavior: smooth; }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+        body { font-family: var(--bs-body-font-family); -webkit-font-smoothing: antialiased; }
+        [id] { scroll-margin-top: 80px; }
+        :focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+
+        /* ---------- Buttons ---------- */
+        .btn { font-weight: 600; border-radius: 0.6rem; }
+        .btn-brand { background: var(--navy); color: #fff; border: 1px solid var(--navy); }
+        .btn-brand:hover, .btn-brand:focus { background: #0f1738; color: #fff; border-color: #0f1738; }
+        .btn-yellow { background: var(--yellow); color: var(--navy); border: 1px solid var(--yellow); }
+        .btn-yellow:hover { background: #ffd24f; color: var(--navy); }
+        .btn-line { background: transparent; color: var(--navy); border: 1px solid #c5cbe0; }
+        .btn-line:hover { background: #fff; color: var(--navy); border-color: var(--navy); }
+
+        /* ---------- Navbar ---------- */
+        .site-nav { background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+        .logo-mark {
+            width: 34px; height: 34px; border-radius: 9px; background: var(--navy); color: var(--yellow);
+            display: inline-grid; place-items: center; font-size: 1.1rem;
+        }
+        .site-nav .navbar-brand { font-weight: 800; color: var(--navy); letter-spacing: -0.01em; }
+        .site-nav .nav-link { font-weight: 500; color: var(--muted); padding: .5rem .9rem; border-radius: .5rem; }
+        .site-nav .nav-link:hover { color: var(--navy); background: var(--bg); }
+        .dropdown-menu { border: 1px solid var(--line); border-radius: .75rem; box-shadow: 0 12px 32px rgba(17,25,54,.1); }
+
+        /* ---------- Hero ---------- */
+        .hero { padding: 4rem 0 3.5rem; }
+        .hero h1 { font-weight: 800; letter-spacing: -0.025em; line-height: 1.15; font-size: clamp(2.2rem, 4.6vw, 3.4rem); max-width: 14em; }
+        .hero p.lead { color: var(--muted); font-size: 1.1rem; max-width: 32em; }
+        .skill-chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+        .skill-chip {
+            display: inline-flex; align-items: center; gap: .5rem; padding: .45rem .9rem; border-radius: 999px;
+            background: var(--surface); border: 1px solid var(--line); color: var(--ink); font-weight: 600; font-size: .9rem;
+            text-decoration: none; cursor: pointer; transition: all .15s;
+        }
+        .skill-chip i { color: var(--c); }
+        .skill-chip:hover { border-color: var(--c); background: #fff; }
+
+        /* ---------- Quiz demo ---------- */
+        .quiz {
+            background: var(--surface); border: 1px solid var(--line); border-radius: 1.25rem; padding: 1.5rem;
+            box-shadow: 0 24px 48px -24px rgba(22,32,79,.25);
+        }
+        .quiz-tag { display: inline-flex; align-items: center; gap: .4rem; font-weight: 600; font-size: .85rem; color: var(--c-reading); background: color-mix(in srgb, var(--c-reading) 11%, white); padding: .3rem .7rem; border-radius: 999px; }
+        .quiz-q { font-size: 1.15rem; font-weight: 600; line-height: 1.5; margin: 1rem 0 1.25rem; }
+        .blank { display: inline-block; min-width: 4.5rem; border-bottom: 2px solid var(--navy); text-align: center; color: var(--navy); }
+        .opt {
+            display: flex; align-items: center; gap: .75rem; width: 100%; text-align: left; background: #fff;
+            border: 1.5px solid var(--line); border-radius: .75rem; padding: .7rem .9rem; font-weight: 500; color: var(--ink);
+        }
+        .opt:hover:not(:disabled) { border-color: var(--navy); }
+        .opt .letter { width: 28px; height: 28px; border-radius: 50%; background: var(--bg); display: grid; place-items: center; font-weight: 700; font-size: .85rem; flex-shrink: 0; }
+        .opt.correct { border-color: var(--c-listening); background: color-mix(in srgb, var(--c-listening) 9%, white); }
+        .opt.correct .letter { background: var(--c-listening); color: #fff; }
+        .opt.wrong { border-color: var(--c-speaking); background: color-mix(in srgb, var(--c-speaking) 8%, white); }
+        .opt.wrong .letter { background: var(--c-speaking); color: #fff; }
+        .opt:disabled { cursor: default; opacity: 1; }
+        .quiz-feedback { min-height: 3.2rem; font-size: .93rem; color: var(--muted); margin-top: 1rem; }
+        .quiz-feedback strong { color: var(--ink); }
+
+        /* ---------- Section titles ---------- */
+        .section { padding: 3.5rem 0; }
+        .section h2 { font-weight: 800; letter-spacing: -0.02em; font-size: clamp(1.6rem, 3vw, 2.1rem); }
+        .section .sub { color: var(--muted); max-width: 36em; }
+
+        /* ---------- Four skills ---------- */
+        .skill-panel { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: .9rem; padding: 1.4rem; height: 100%; }
+        .skill-ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 1.3rem; color: var(--c); background: color-mix(in srgb, var(--c) 12%, white); }
+        .skill-panel h3 { font-size: 1.15rem; font-weight: 700; margin: 1rem 0 .35rem; }
+        .skill-panel p { color: var(--muted); font-size: .93rem; margin-bottom: 1rem; }
+        .skill-panel .meta { font-weight: 600; font-size: .88rem; color: var(--c); }
+
+        /* ---------- Practice ---------- */
+        .practice { background: var(--surface); border: 1px solid var(--line); border-radius: 1.1rem; overflow: hidden; }
+        .practice-tabs { background: #fafbfe; border-right: 1px solid var(--line); padding: .75rem; }
+        .ptab {
+            width: 100%; display: flex; align-items: center; gap: .75rem; text-align: left; background: transparent; border: none;
+            padding: .8rem .9rem; border-radius: .7rem; font-weight: 600; color: var(--muted); border-left: 4px solid transparent;
+        }
+        .ptab i { color: var(--c); font-size: 1.15rem; }
+        .ptab:hover { background: #fff; color: var(--ink); }
+        .ptab.active { background: #fff; color: var(--ink); border-left-color: var(--c); box-shadow: 0 1px 0 var(--line), 0 0 0 1px var(--line) inset; }
+        .practice-body { padding: 1.5rem 1.75rem; }
+        .prow { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--line); }
+        .prow:last-child { border-bottom: none; }
+        .prow .name { font-weight: 600; }
+        .prow .desc { color: var(--muted); font-size: .9rem; }
+        .prow .count { font-size: .85rem; font-weight: 600; color: var(--c); white-space: nowrap; }
+
+        /* ---------- Exams ---------- */
+        .exam-table { background: var(--surface); border: 1px solid var(--line); border-radius: 1.1rem; overflow: hidden; }
+        .exam-table table { margin: 0; --bs-table-bg: transparent; }
+        .exam-table th { font-weight: 600; font-size: .85rem; color: var(--muted); background: #fafbfe; padding: .9rem 1.25rem; border-bottom: 1px solid var(--line); }
+        .exam-table td { padding: 1.1rem 1.25rem; vertical-align: middle; border-color: var(--line); }
+        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: var(--c); margin-right: .3rem; }
+        .exam-code { font-size: .85rem; color: var(--muted); font-weight: 500; }
+
+        /* ---------- Steps ---------- */
+        .step-no { width: 38px; height: 38px; border-radius: 50%; background: var(--navy); color: var(--yellow); display: grid; place-items: center; font-weight: 800; }
+
+        /* ---------- CTA ---------- */
+        .cta-band { background: var(--navy); color: #fff; border-radius: 1.25rem; padding: 2.75rem; }
+        .cta-band h2 { font-weight: 800; letter-spacing: -0.02em; }
+        .cta-band p { color: #c4cbea; }
+
+        footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
+
+        /* ---------- Modals & Form Styling ---------- */
+        .modal-content { border: none; border-radius: 1.1rem; }
+        .seg { display: flex; background: var(--bg); border-radius: .75rem; padding: 4px; }
+        .seg button { flex: 1; border: none; background: transparent; padding: .55rem; border-radius: .55rem; font-weight: 600; color: var(--muted); }
+        .seg button.active { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(17,25,54,.12); }
+        .form-label { font-weight: 600; font-size: .88rem; }
+        .form-control, .form-select { border-radius: .6rem; padding: .6rem .8rem; border-color: #d3d8e8; }
+        .form-control:focus, .form-select:focus { border-color: var(--navy); box-shadow: 0 0 0 .2rem rgba(22,32,79,.12); }
+        .pw-toggle { border: 1px solid #d3d8e8; border-left: none; background: #fff; color: var(--muted); border-radius: 0 .6rem .6rem 0; }
+
+        /* ---------- GIAO DIỆN LÀM BÀI THI & KẾT QUẢ ---------- */
+        .exam-topbar {
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            position: sticky;
+            top: 75px;
+            z-index: 1020;
+            box-shadow: 0 4px 16px rgba(17,25,54,.05);
+        }
+        .timer-badge {
+            background: #fee2e2;
+            color: #dc2626;
+            font-weight: 700;
+            padding: .45rem .9rem;
+            border-radius: .6rem;
+            font-variant-numeric: tabular-nums;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+        }
+        .timer-badge.normal { background: #e0f2fe; color: #0284c7; }
+        .q-card {
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 8px rgba(17,25,54,.03);
+            transition: border-color .15s;
+        }
+        .q-card:focus-within { border-color: var(--navy); }
+        .q-choice {
+            display: flex;
+            align-items: center;
+            gap: .85rem;
+            padding: .75rem 1rem;
+            border-radius: .7rem;
+            border: 1.5px solid var(--line);
+            background: #fff;
+            cursor: pointer;
+            transition: all .15s ease;
+            margin-bottom: .6rem;
+        }
+        .q-choice:hover { border-color: var(--navy); background: #f8fafc; }
+        .q-choice.selected { border-color: var(--navy); background: #eff4ff; font-weight: 600; }
+        .q-choice .letter {
+            width: 30px; height: 30px; border-radius: 50%; background: var(--bg);
+            display: grid; place-items: center; font-weight: 700; font-size: .88rem; flex-shrink: 0;
+        }
+        .q-choice.selected .letter { background: var(--navy); color: #fff; }
+        .q-choice.correct-ans { border-color: #16a34a !important; background: #f0fdf4 !important; font-weight: 600; }
+        .q-choice.correct-ans .letter { background: #16a34a !important; color: #fff !important; }
+        .q-choice.wrong-ans { border-color: #dc2626 !important; background: #fef2f2 !important; }
+        .q-choice.wrong-ans .letter { background: #dc2626 !important; color: #fff !important; }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: .45rem;
+        }
+        .palette-btn {
+            aspect-ratio: 1;
+            border: 1.5px solid var(--line);
+            border-radius: .55rem;
+            background: #fff;
+            font-weight: 700;
+            font-size: .85rem;
+            color: var(--muted);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .palette-btn:hover { border-color: var(--navy); color: var(--navy); }
+        .palette-btn.answered { background: var(--navy); color: #fff; border-color: var(--navy); }
+        .palette-btn.res-correct { background: #22c55e !important; color: #fff !important; border-color: #22c55e !important; }
+        .palette-btn.res-wrong { background: #ef4444 !important; color: #fff !important; border-color: #ef4444 !important; }
+
+        .expl-box {
+            background: #f8fafc;
+            border-left: 4px solid var(--c-reading);
+            border-radius: 0 .6rem .6rem 0;
+            padding: 1rem 1.1rem;
+            font-size: .92rem;
+            margin-top: .9rem;
+        }
+        .score-circle {
+            width: 130px; height: 130px; border-radius: 50%;
+            display: grid; place-items: center; margin: 0 auto;
+            background: var(--navy); color: var(--yellow);
+            font-size: 2.2rem; font-weight: 800;
+            box-shadow: 0 10px 25px -5px rgba(22,32,79,.4);
+        }
+    </style>
+</head>
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar navbar-expand-lg site-nav sticky-top py-2">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2 fs-5" href="#" onclick="showHome(); window.scrollTo(0,0); return false;">
+            <span class="logo-mark"><i class="bi bi-mortarboard-fill"></i></span>GoToeic
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-label="Mở menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showHome(); goTo('top'); return false;">Trang chủ</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Luyện tập</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item py-2" href="#" onclick="openSkill('listening'); return false;"><i class="bi bi-headphones me-2" style="color:var(--c-listening)"></i>Nghe (Listening)</a></li>
+                        <li><a class="dropdown-item py-2" href="#" onclick="openSkill('speaking'); return false;"><i class="bi bi-mic me-2" style="color:var(--c-speaking)"></i>Nói (Speaking)</a></li>
+                        <li><a class="dropdown-item py-2" href="#" onclick="openSkill('reading'); return false;"><i class="bi bi-book me-2" style="color:var(--c-reading)"></i>Đọc (Reading)</a></li>
+                        <li><a class="dropdown-item py-2" href="#" onclick="openSkill('writing'); return false;"><i class="bi bi-pencil-square me-2" style="color:var(--c-writing)"></i>Viết (Writing)</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showHome(); goTo('dethi'); return false;">Đề thi thử</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showHome(); goTo('huongdan'); return false;">Cách học</a></li>
+            </ul>
+
+            <!-- Khách vãng lai -->
+            <div id="guestButtons" class="d-flex gap-2">
+                <button type="button" class="btn btn-line btn-sm px-3" onclick="openAuthModal('login')">Đăng nhập</button>
+                <button type="button" class="btn btn-brand btn-sm px-3" onclick="openAuthModal('register')">Đăng ký</button>
+            </div>
+
+            <!-- Sinh viên đã đăng nhập (Thông tin từ CSDL) -->
+            <div id="studentDropdown" class="dropdown d-none">
+                <button class="btn btn-line btn-sm dropdown-toggle px-3" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle me-1"></i><span id="studentNameDisplay">Nguyễn Văn Sinh Viên</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item py-2" href="#" onclick="openProfileModal(); return false;"><i class="bi bi-person me-2"></i>Hồ sơ sinh viên</a></li>
+                    <li><a class="dropdown-item py-2" href="#" onclick="openHistoryModal(); return false;"><i class="bi bi-clock-history me-2"></i>Lịch sử làm bài</a></li>
+                    <li><a class="dropdown-item py-2" href="#" onclick="openProgressModal(); return false;"><i class="bi bi-graph-up-arrow me-2"></i>Tiến độ học tập</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item py-2 text-danger" href="#" onclick="logoutStudent(); return false;"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ================= TRANG CHỦ ================= -->
+<main id="homeContent">
+
+    <!-- Hero -->
+    <section class="hero" id="top">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <h1 class="mb-3">Ôn đủ 4 kỹ năng TOEIC, từng phần một</h1>
+                    <p class="lead mb-4">Luyện Nghe, Nói, Đọc, Viết theo đúng cấu trúc đề thi. Làm bài có chấm điểm, xem đáp án giải thích và theo dõi điểm của bạn ở một nơi.</p>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <button class="btn btn-brand btn-lg px-4" onclick="goTo('luyentap')">Bắt đầu luyện tập</button>
+                        <button class="btn btn-line btn-lg px-4" onclick="goTo('dethi')">Làm đề thi thử</button>
+                    </div>
+                    <div class="skill-chips">
+                        <a class="skill-chip" style="--c:var(--c-listening)" onclick="openSkill('listening')" role="button" tabindex="0"><i class="bi bi-headphones"></i>Nghe</a>
+                        <a class="skill-chip" style="--c:var(--c-speaking)" onclick="openSkill('speaking')" role="button" tabindex="0"><i class="bi bi-mic"></i>Nói</a>
+                        <a class="skill-chip" style="--c:var(--c-reading)" onclick="openSkill('reading')" role="button" tabindex="0"><i class="bi bi-book"></i>Đọc</a>
+                        <a class="skill-chip" style="--c:var(--c-writing)" onclick="openSkill('writing')" role="button" tabindex="0"><i class="bi bi-pencil-square"></i>Viết</a>
+                    </div>
+                </div>
+
+                <!-- Câu hỏi mẫu làm thử ngay (Trích từ CSDL bảng questions) -->
+                <div class="col-lg-6">
+                    <div class="quiz">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="quiz-tag"><i class="bi bi-book"></i>Đọc, Part 5</span>
+                            <span class="small text-secondary" id="qCounter">Câu 1/2</span>
+                        </div>
+                        <p class="quiz-q" id="qText"></p>
+                        <div class="d-grid gap-2" id="qOptions"></div>
+                        <div class="quiz-feedback" id="qFeedback" aria-live="polite">Chọn một đáp án để xem giải thích.</div>
+                        <div class="text-end">
+                            <button class="btn btn-brand btn-sm px-3" id="qNext" onclick="nextQuiz()">Câu tiếp theo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4 kỹ năng -->
+    <section class="section pt-2">
+        <div class="container">
+            <h2 class="mb-2">Mỗi kỹ năng có lộ trình riêng</h2>
+            <p class="sub mb-4">Hệ thống bám sát cấu trúc bài thi TOEIC Listening &amp; Reading và TOEIC Speaking &amp; Writing.</p>
+            <div class="row g-3">
+                <div class="col-md-6 col-lg-3">
+                    <div class="skill-panel" style="--c:var(--c-listening)">
+                        <div class="skill-ico"><i class="bi bi-headphones"></i></div>
+                        <h3>Nghe</h3>
+                        <p>Mô tả tranh, hỏi đáp, hội thoại và bài nói ngắn, có audio và transcript.</p>
+                        <span class="meta">Part 1 - 4, 100 câu</span>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="skill-panel" style="--c:var(--c-speaking)">
+                        <div class="skill-ico"><i class="bi bi-mic"></i></div>
+                        <h3>Nói</h3>
+                        <p>Ghi âm câu trả lời, nghe lại và đối chiếu với bài mẫu theo từng dạng bài.</p>
+                        <span class="meta">6 dạng bài, 11 câu</span>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="skill-panel" style="--c:var(--c-reading)">
+                        <div class="skill-ico"><i class="bi bi-book"></i></div>
+                        <h3>Đọc</h3>
+                        <p>Ngữ pháp, từ vựng và đọc hiểu, có giải thích vì sao đáp án đúng.</p>
+                        <span class="meta">Part 5 - 7, 100 câu</span>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="skill-panel" style="--c:var(--c-writing)">
+                        <div class="skill-ico"><i class="bi bi-pencil-square"></i></div>
+                        <h3>Viết</h3>
+                        <p>Viết câu theo tranh, trả lời email và viết bài luận nêu quan điểm.</p>
+                        <span class="meta">3 dạng bài, 8 câu</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Luyện tập theo kỹ năng -->
+    <section class="section" id="luyentap">
+        <div class="container">
+            <div class="d-flex flex-wrap justify-content-between align-items-end mb-3">
+                <div>
+                    <h2 class="mb-1">Luyện tập theo kỹ năng &amp; Chủ đề</h2>
+                    <p class="sub mb-0">Chọn kỹ năng ở bên trái, sau đó chọn Part hoặc dạng bài bạn muốn ôn.</p>
+                </div>
+            </div>
+
+            <div class="practice" id="practiceBox">
+                <div class="row g-0">
+                    <div class="col-md-3 practice-tabs" id="practiceTabs" role="tablist"></div>
+                    <div class="col-md-9 practice-body">
+                        <div id="practiceHead" class="mb-2"></div>
+                        <div id="practiceList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Đề thi thử (Đồng bộ với bảng exams trong CSDL) -->
+    <section class="section" id="dethi">
+        <div class="container">
+            <div class="row align-items-end justify-content-between g-3 mb-4">
+                <div class="col-lg-5">
+                    <h2 class="mb-1">Đề thi thử chuẩn TOEIC</h2>
+                    <p class="sub mb-0">Bộ đề thi thử chuẩn cấu trúc ETS, bấm giờ thực tế và tự động chấm điểm.</p>
+                </div>
+                <!-- Tìm kiếm, lọc đề thi -->
+                <div class="col-lg-7">
+                    <div class="row g-2">
+                        <div class="col-sm-7">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                                <input type="text" id="examSearchInput" class="form-control border-start-0" placeholder="Tìm kiếm tên đề, mã đề (VD: Full Test, ETS)..." onkeyup="filterExams()" />
+                            </div>
+                        </div>
+                        <div class="col-sm-5">
+                            <select id="examSkillFilter" class="form-select" onchange="filterExams()">
+                                <option value="all">Tất cả kỹ năng</option>
+                                <option value="lr">Nghe &amp; Đọc (Listening &amp; Reading)</option>
+                                <option value="sw">Nói &amp; Viết (Speaking &amp; Writing)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="exam-table">
+                <div class="table-responsive">
+                    <table class="table mb-0" id="examTable">
+                        <thead>
+                        <tr><th>Tên đề thi</th><th>Mô tả</th><th>Thời lượng</th><th>Số câu</th><th class="text-end">Thao tác</th></tr>
+                        </thead>
+                        <tbody id="examTableBody">
+                        <!-- Đề thi chính từ CSDL gotoeic.sql (id=1) -->
+                        <tr data-skill="lr" data-type="full">
+                            <td>
+                                <div class="fw-semibold text-primary">Đề thi thử TOEIC Full Test 01</div>
+                                <div class="exam-code">Mã đề: ETS-01</div>
+                            </td>
+                            <td><span class="text-secondary small">Đề thi thử sát với đề thi thật, gồm 200 câu.</span></td>
+                            <td><span class="badge bg-light text-dark border">120 phút</span></td>
+                            <td>200 câu</td>
+                            <td class="text-end">
+                                <button class="btn btn-brand btn-sm px-3" onclick="startExam('Đề thi thử TOEIC Full Test 01', 120)">
+                                    <i class="bi bi-pencil-square me-1"></i>Làm bài
+                                </button>
+                            </td>
+                        </tr>
+                        <!-- Đề bổ trợ -->
+                        <tr data-skill="lr" data-type="full">
+                            <td>
+                                <div class="fw-semibold">Đề thi thử TOEIC Full Test 02</div>
+                                <div class="exam-code">ID #2 (ETS Format chuẩn)</div>
+                            </td>
+                            <td><span class="text-secondary small">Bộ đề chuẩn cấu trúc đề thi quốc tế ETS.</span></td>
+                            <td><span class="badge bg-light text-dark border">120 phút</span></td>
+                            <td>200 câu</td>
+                            <td class="text-end">
+                                <button class="btn btn-brand btn-sm px-3" onclick="startExam('Đề thi thử TOEIC Full Test 02', 120)">
+                                    <i class="bi bi-pencil-square me-1"></i>Làm bài
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cách học -->
+    <section class="section" id="huongdan">
+        <div class="container">
+            <h2 class="mb-4">Bắt đầu trong 3 bước</h2>
+            <div class="row g-4">
+                <div class="col-md-4 d-flex gap-3">
+                    <div class="step-no">1</div>
+                    <div><h3 class="h6 fw-bold">Tạo tài khoản sinh viên</h3><p class="text-secondary small mb-0">Đăng ký bằng email và họ tên để lưu điểm vào hệ thống.</p></div>
+                </div>
+                <div class="col-md-4 d-flex gap-3">
+                    <div class="step-no">2</div>
+                    <div><h3 class="h6 fw-bold">Luyện từng kỹ năng</h3><p class="text-secondary small mb-0">Chọn Nghe, Nói, Đọc hoặc Viết, ôn theo Part hoặc dạng bài còn yếu.</p></div>
+                </div>
+                <div class="col-md-4 d-flex gap-3">
+                    <div class="step-no">3</div>
+                    <div><h3 class="h6 fw-bold">Thi thử và xem điểm</h3><p class="text-secondary small mb-0">Làm đề có tính giờ, nhận điểm số và xem lại lời giải chi tiết.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section pt-2 pb-5">
+        <div class="container">
+            <div class="cta-band d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <div>
+                    <h2 class="h3 mb-1">Theo dõi tiến độ cả 4 kỹ năng</h2>
+                    <p class="mb-0">Đăng ký miễn phí để lưu lịch sử làm bài và điểm của bạn.</p>
+                </div>
+                <button class="btn btn-yellow btn-lg px-4 flex-shrink-0" onclick="openAuthModal('register')">Tạo tài khoản</button>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-4">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>GoToeic - Hệ thống ôn luyện TOEIC chuẩn đầu ra cho sinh viên.</span>
+            <span>&copy; 2026 GoToeic</span>
+        </div>
+    </footer>
+</main>
+
+<!-- ================= GIAO DIỆN LÀM BÀI THI THỬ (EXAM INTERFACE) ================= -->
+<section class="container py-4 d-none" id="examSection">
+    <div class="exam-topbar d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-line btn-sm" onclick="exitExam()"><i class="bi bi-arrow-left me-1"></i>Thoát</button>
+            <div>
+                <h5 class="fw-bold mb-0" id="examCurrentTitle">Đề thi thử TOEIC Full Test 01</h5>
+                <span class="small text-muted" id="examPartDesc">Thời gian làm bài: 120 phút</span>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="timer-badge" id="examTimer">
+                <i class="bi bi-clock"></i><span id="timerDisplay">120:00</span>
+            </div>
+            <button class="btn btn-yellow px-4" onclick="promptSubmitExam()">
+                <i class="bi bi-check-circle-fill me-1"></i>Nộp bài
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8" id="examQuestionsContainer"></div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm p-4 sticky-top" style="top: 155px; border-radius: 1rem;">
+                <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center">
+                    <span>Bảng câu hỏi</span>
+                    <span class="small text-muted" id="progressCount">Đã làm: 0/10</span>
+                </h6>
+                <div class="palette-grid mb-4" id="examPalette"></div>
+                <div class="d-flex justify-content-between small text-muted mb-4 pb-3 border-bottom">
+                    <span><span class="badge bg-secondary me-1">&nbsp;</span>Chưa làm</span>
+                    <span><span class="badge bg-primary me-1">&nbsp;</span>Đã chọn</span>
+                </div>
+                <button class="btn btn-brand w-100 py-2" onclick="promptSubmitExam()">
+                    <i class="bi bi-send-check me-1"></i>Nộp bài thi ngay
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= GIAO DIỆN KẾT QUẢ THI & LỜI GIẢI CHI TIẾT ================= -->
+<section class="container py-4 d-none" id="resultSection">
+    <div class="card border-0 shadow-sm p-4 p-md-5 mb-4 text-center" style="border-radius: 1.25rem;">
+        <span class="badge bg-success-subtle text-success mx-auto px-3 py-2 fs-6 rounded-pill mb-3">
+            <i class="bi bi-trophy-fill me-1"></i>Hoàn thành bài thi thử!
+        </span>
+        <h2 class="fw-bold mb-1" id="resExamTitle">Kết quả: Đề thi thử TOEIC Full Test 01</h2>
+        <p class="text-muted mb-4">Chi tiết điểm số và các câu trả lời của bạn.</p>
+
+        <div class="score-circle mb-4" id="resTotalScore">8.5</div>
+
+        <div class="row g-3 max-w-700 mx-auto justify-content-center mb-4">
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-light rounded-3">
+                    <div class="small text-muted">Điểm số</div>
+                    <div class="h4 fw-bold text-primary mb-0" id="resScoreDecimal">8.5 / 10</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-light rounded-3">
+                    <div class="small text-muted">Điểm quy đổi TOEIC</div>
+                    <div class="h4 fw-bold text-success mb-0" id="resToeicScore">820 / 990</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-light rounded-3">
+                    <div class="small text-muted">Số câu đúng</div>
+                    <div class="h4 fw-bold text-dark mb-0" id="resCorrectCount">8 / 10</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-light rounded-3">
+                    <div class="small text-muted">Thời gian làm</div>
+                    <div class="h4 fw-bold text-secondary mb-0" id="resTimeSpent">18 phút</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+            <button class="btn btn-brand px-4 py-2" id="btnToggleReview" onclick="toggleDetailedReview()">
+                <i class="bi bi-card-checklist me-2"></i>Xem đáp án và lời giải chi tiết
+            </button>
+            <button class="btn btn-line px-4 py-2" onclick="restartCurrentExam()">
+                <i class="bi bi-arrow-clockwise me-1"></i>Làm lại đề này
+            </button>
+            <button class="btn btn-line px-4 py-2" onclick="showHome()">
+                <i class="bi bi-house me-1"></i>Về danh sách đề
+            </button>
+        </div>
+    </div>
+
+    <!-- Chi tiết giải thích (Extend) -->
+    <div id="detailedReviewContainer" class="d-none">
+        <h4 class="fw-bold mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-card-text text-primary"></i>Chi tiết đáp án &amp; Lời giải giải thích
+        </h4>
+        <div id="reviewQuestionsList"></div>
+    </div>
+</section>
+
+<!-- ================= MODAL XÁC NHẬN NỘP BÀI ================= -->
+<div class="modal fade" id="submitConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold modal-title">Xác nhận nộp bài</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p id="submitWarningText" class="mb-2">Bạn có chắc chắn muốn nộp bài thi không?</p>
+                <div class="alert alert-warning small mb-0 d-none" id="unansweredWarning">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    Bạn vẫn còn câu chưa trả lời. Hãy kiểm tra lại trước khi nộp.
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-line" data-bs-dismiss="modal">Làm tiếp</button>
+                <button type="button" class="btn btn-brand px-4" onclick="confirmSubmitExam()">Nộp bài ngay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL HỒ SƠ CÁ NHÂN ================= -->
+<div class="modal fade" id="profileModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border-0" style="border-radius: 1.1rem;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold modal-title"><i class="bi bi-person-circle text-primary me-2"></i>Hồ sơ cá nhân</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Thẻ tóm tắt thông tin học viên -->
+                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 mb-4">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-4 flex-shrink-0" style="width: 52px; height: 52px;" id="profAvatar">
+                        SV
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0" id="profCardName">Nguyễn Văn Sinh Viên</h6>
+                        <div class="small text-muted mb-1" id="profCardEmail">student@gmail.com</div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-subtle text-primary"><i class="bi bi-mortarboard me-1"></i>Học viên GoToeic</span>
+                            <span class="small text-muted">Tham gia: <span id="profMemberSince">03/11/2026</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="profileForm" novalidate onsubmit="handleSaveProfile(event)">
+                    <div class="alert alert-success d-none py-2 small" id="profileAlert">
+                        <i class="bi bi-check-circle me-1"></i>Cập nhật thông tin thành công!
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label" for="profName">Họ và tên *</label>
+                            <input type="text" id="profName" class="form-control" value="Nguyễn Văn Sinh Viên" required />
+                            <div class="invalid-feedback">Họ tên không được để trống (tối thiểu 2 ký tự).</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="profEmail">Email tài khoản</label>
+                            <input type="email" id="profEmail" class="form-control bg-light" value="student@gmail.com" readonly />
+                            <div class="form-text small text-muted">Email dùng để đăng nhập hệ thống.</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="profNewPass">Đổi mật khẩu mới <span class="text-muted fw-normal">(để trống nếu không đổi)</span></label>
+                            <input type="password" id="profNewPass" class="form-control" placeholder="Nhập mật khẩu mới từ 6 ký tự..." />
+                        </div>
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-brand w-100 py-2">
+                                <i class="bi bi-check2-circle me-1"></i>Lưu thay đổi hồ sơ
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL LỊCH SỬ LÀM BÀI ================= -->
+<div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow border-0" style="border-radius: 1.1rem;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold modal-title"><i class="bi bi-clock-history text-primary me-2"></i>Lịch sử làm bài thi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light small">
+                        <tr><th>Thời gian nộp</th><th>Tên đề thi</th><th>Số câu đúng</th><th>Điểm số</th><th>Thao tác</th></tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                        <tr>
+                            <td><span class="small text-muted">03/11/2026 14:20</span></td>
+                            <td><span class="fw-semibold">Đề thi thử TOEIC Full Test 01</span></td>
+                            <td><span class="badge bg-primary-subtle text-primary">1 / 2 câu</span></td>
+                            <td><span class="badge bg-success-subtle text-success fs-6">5.0 / 10 (500 TOEIC)</span></td>
+                            <td><button class="btn btn-line btn-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('historyModal')).hide(); startExam('Đề thi thử TOEIC Full Test 01', 120)">Làm lại</button></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL TIẾN ĐỘ HỌC TẬP ================= -->
+<div class="modal fade" id="progressModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold modal-title"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Tiến độ học tập cá nhân</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="card bg-light border-0 p-3 rounded-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">Mục tiêu: Đạt chuẩn đầu ra</span>
+                        <span class="badge bg-success">Đang tiến bộ</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                    </div>
+                    <div class="small text-muted mt-2">Điểm gần nhất: <strong>5.0 / 10 (500 TOEIC)</strong></div>
+                </div>
+
+                <h6 class="fw-bold mb-3">Điểm kỹ năng ước lượng</h6>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                        <span>Đọc (Reading - Part 5)</span><span class="text-primary">Đúng 1/2 câu</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar" style="width: 50%; background: var(--c-reading)"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                        <span>Nghe (Listening)</span><span class="text-success">Chưa làm</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar" style="width: 20%; background: var(--c-listening)"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL ĐĂNG NHẬP / ĐĂNG KÝ (ĐỒNG BỘ VỚI BẢNG USERS) ================= -->
+<div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2 fw-bold fs-5">
+                    <span class="logo-mark"><i class="bi bi-mortarboard-fill"></i></span>GoToeic
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+
+            <div class="modal-body p-4 pt-3">
+                <div class="seg mb-4" id="authTabs">
+                    <button type="button" id="btnTabLogin" class="active" onclick="switchModalTab('login')">Đăng nhập</button>
+                    <button type="button" id="btnTabRegister" onclick="switchModalTab('register')">Đăng ký</button>
+                </div>
+
+                <!-- Đăng nhập: Khớp với CSDL users (email, password) -->
+                <form id="loginForm" novalidate onsubmit="handleLogin(event)">
+                    <h5 class="fw-bold mb-1">Chào mừng quay lại</h5>
+                    <p class="text-secondary small mb-3">Đăng nhập tài khoản để tiếp tục luyện thi.</p>
+                    <div class="mb-3">
+                        <label class="form-label" for="loginUser">Email tài khoản</label>
+                        <input type="email" id="loginUser" class="form-control" placeholder="Nhập địa chỉ email của bạn..." autocomplete="username" required />
+                        <div class="invalid-feedback">Vui lòng nhập đúng định dạng Email.</div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label" for="loginPass">Mật khẩu</label>
+                        <div class="input-group has-validation">
+                            <input type="password" id="loginPass" class="form-control" placeholder="Nhập mật khẩu của bạn..." autocomplete="current-password" required />
+                            <button type="button" class="pw-toggle px-3" onclick="togglePw('loginPass', this)" aria-label="Hiện mật khẩu"><i class="bi bi-eye"></i></button>
+                            <div class="invalid-feedback">Mật khẩu phải từ 6 ký tự trở lên.</div>
+                        </div>
+                    </div>
+                    <div class="text-end mb-3">
+                        <a href="#" class="small fw-semibold" onclick="switchModalTab('forgot'); return false;">Quên mật khẩu?</a>
+                    </div>
+                    <button type="submit" class="btn btn-brand w-100 py-2">Đăng nhập</button>
+                </form>
+
+                <!-- Đăng ký: Khớp với CSDL users (full_name, email, password) -->
+                <form id="registerForm" class="d-none" novalidate onsubmit="handleRegister(event)">
+                    <h5 class="fw-bold mb-1">Tạo tài khoản sinh viên</h5>
+                    <p class="text-secondary small mb-3">Tạo tài khoản học viên để bắt đầu luyện thi TOEIC.</p>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label" for="regName">Họ và tên *</label>
+                            <input type="text" id="regName" class="form-control" placeholder="Nguyễn Văn A" autocomplete="name" required />
+                            <div class="invalid-feedback">Vui lòng nhập họ và tên (tối thiểu 2 ký tự).</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="regEmail">Email tài khoản *</label>
+                            <input type="email" id="regEmail" class="form-control" placeholder="name@gmail.com" autocomplete="email" required />
+                            <div class="invalid-feedback">Email không đúng định dạng.</div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" for="regPass">Mật khẩu *</label>
+                            <input type="password" id="regPass" class="form-control" placeholder="Từ 6 ký tự" autocomplete="new-password" required />
+                            <div class="invalid-feedback">Tối thiểu 6 ký tự.</div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" for="regConfirm">Nhập lại mật khẩu *</label>
+                            <input type="password" id="regConfirm" class="form-control" placeholder="Khớp mật khẩu" autocomplete="new-password" required />
+                            <div class="invalid-feedback">Mật khẩu chưa khớp.</div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-brand w-100 py-2">Đăng ký tài khoản</button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Quên mật khẩu -->
+                <form id="forgotForm" class="d-none" novalidate onsubmit="handleForgot(event)">
+                    <h5 class="fw-bold mb-1">Đặt lại mật khẩu</h5>
+                    <p class="text-secondary small mb-3">Nhập email đã đăng ký, chúng tôi sẽ gửi hướng dẫn đặt lại.</p>
+                    <div class="mb-3">
+                        <label class="form-label" for="forgotEmail">Email đã đăng ký</label>
+                        <input type="email" id="forgotEmail" class="form-control" placeholder="student@gmail.com" required />
+                        <div class="invalid-feedback">Vui lòng nhập đúng định dạng email.</div>
+                    </div>
+                    <div class="alert alert-success small d-none" id="forgotDone" role="status">Đã gửi hướng dẫn đặt lại mật khẩu. Hãy kiểm tra hộp thư của bạn.</div>
+                    <button type="submit" class="btn btn-brand w-100 py-2 mb-2">Gửi hướng dẫn</button>
+                    <button type="button" class="btn btn-line w-100 py-2" onclick="switchModalTab('login')">Quay lại đăng nhập</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= THÔNG BÁO NỔI (TOAST NOTIFICATION) ================= -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2050;">
+    <div id="liveToast" class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 1rem; background: #ffffff;">
+        <div class="d-flex align-items-center p-3">
+            <div id="toastIconWrapper" class="me-3 d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 44px; height: 44px; background: rgba(14, 147, 132, 0.12);">
+                <i id="toastIcon" class="bi bi-check-circle-fill text-success fs-4"></i>
+            </div>
+            <div class="flex-grow-1 pe-2">
+                <div class="fw-bold mb-0 text-dark" id="toastTitle">Thông báo</div>
+                <div class="small text-muted" id="toastText">Thao tác thành công!</div>
+            </div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    /* ================= DỮ LIỆU TỪ CSDL GOTOEIC.SQL ================= */
+    // 1. Danh sách người dùng trong bảng users
+    let DB_USERS = [
+        {
+            id: 1,
+            email: 'admin@gmail.com',
+            password: '123456',
+            full_name: 'Quản Trị Viên',
+            role: 'ADMIN',
+            is_active: true,
+            created_at: '2026-11-03'
+        },
+        {
+            id: 2,
+            email: 'student@gmail.com',
+            password: '123456',
+            full_name: 'Nguyễn Văn Sinh Viên',
+            role: 'STUDENT',
+            is_active: true,
+            created_at: '2026-11-03'
+        }
+    ];
+
+    // Người dùng hiện tại đăng nhập (mặc định là Sinh viên trong CSDL)
+    let currentUser = DB_USERS[1];
+
+    // 2. Danh sách câu hỏi trong bảng questions (exam_id = 1: Đề thi thử TOEIC Full Test 01)
+    const SAMPLE_EXAM_QUESTIONS = [
+        {
+            id: 1,
+            exam_id: 1,
+            part: 'Part 5',
+            skill: 'reading',
+            q: 'The manager requested that all employees _____ the safety training.',
+            opts: ['attend', 'attends', 'attending', 'attended'],
+            ans: 0, // 'A'
+            expl: 'Cấu trúc: request that + S + (should) + V(bare).'
+        },
+        {
+            id: 2,
+            exam_id: 1,
+            part: 'Part 5',
+            skill: 'reading',
+            q: 'The company will _____ a new product line next month.',
+            opts: ['launch', 'launching', 'launched', 'launches'],
+            ans: 0, // 'A'
+            expl: 'Sau trợ động từ "will" dùng động từ nguyên mẫu.'
+        },
+        {
+            id: 3,
+            exam_id: 1,
+            part: 'Part 5',
+            skill: 'reading',
+            q: 'All employees must submit their travel expense reports _______ Friday.',
+            opts: ['by', 'at', 'while', 'among'],
+            ans: 0,
+            expl: '"by" đi với mốc thời gian nghĩa là "trước hoặc chậm nhất vào lúc".'
+        },
+        {
+            id: 4,
+            exam_id: 1,
+            part: 'Part 5',
+            skill: 'reading',
+            q: 'The board of directors will review the _______ budget proposal during tomorrow\'s session.',
+            opts: ['revise', 'revised', 'revising', 'revises'],
+            ans: 1,
+            expl: 'Trước cụm danh từ "budget proposal" cần một tính từ hoặc phân từ bị động mang nghĩa "đã được chỉnh sửa" -> "revised".'
+        },
+        {
+            id: 5,
+            exam_id: 1,
+            part: 'Part 5',
+            skill: 'reading',
+            q: 'Ms. Tanaka is responsible _______ coordinating the annual technology seminar.',
+            opts: ['for', 'of', 'to', 'with'],
+            ans: 0,
+            expl: 'Cụm cố định: be responsible for + V-ing/Noun (chịu trách nhiệm cho việc gì).'
+        },
+        {
+            id: 6,
+            exam_id: 1,
+            part: 'Part 5',
+            skill: 'reading',
+            q: 'Mr. Henderson completed the financial audit _______ than anyone had anticipated.',
+            opts: ['quick', 'quickly', 'more quickly', 'most quickly'],
+            ans: 2,
+            expl: 'Có từ so sánh "than" và bổ nghĩa cho động từ "completed" cần trạng từ so sánh hơn -> "more quickly".'
+        },
+        {
+            id: 7,
+            exam_id: 1,
+            part: 'Part 6',
+            skill: 'reading',
+            mediaNote: '[Đoạn văn thông báo nội bộ về bảo trì hệ thống máy chủ]',
+            q: 'Please make sure to save all work before 6:00 PM, as the network _______ unavailable during maintenance.',
+            opts: ['is being', 'will be', 'was', 'has been'],
+            ans: 1,
+            expl: 'Sự việc bảo trì diễn ra trong tương lai (sau 6:00 PM) nên dùng thì tương lai đơn "will be".'
+        },
+        {
+            id: 8,
+            exam_id: 1,
+            part: 'Part 7',
+            skill: 'reading',
+            mediaNote: 'Email từ: HR Department | Gửi đến: Toàn thể nhân viên\n"Starting next month, employees who have completed their probation period are eligible to work remotely up to two days per week."',
+            q: 'Who is eligible to work remotely under the new policy?',
+            opts: [
+                'Only department managers.',
+                'All new interns on their first week.',
+                'Employees who completed their probation.',
+                'Only staff working in the IT department.'
+            ],
+            ans: 2,
+            expl: 'Trong bài viết rõ: "employees who have completed their probation period are eligible to work remotely".'
+        },
+        {
+            id: 9,
+            exam_id: 1,
+            part: 'Part 1',
+            skill: 'listening',
+            q: 'Look at the picture and choose the statement that best describes what you see.',
+            audio: 'Audio Track 01 - Conversation & Photo',
+            mediaNote: '[Hình ảnh minh họa: Một người phụ nữ đang thuyết trình trước màn hình máy chiếu trong phòng họp]',
+            opts: [
+                'She is presenting a report to her colleagues.',
+                'She is turning off the conference room lights.',
+                'She is writing a letter at her desk.',
+                'She is exiting the office building.'
+            ],
+            ans: 0,
+            expl: 'Đáp án A chính xác vì người phụ nữ đang đứng trước màn hình chiếu và thuyết trình cho đồng nghiệp.'
+        },
+        {
+            id: 10,
+            exam_id: 1,
+            part: 'Part 2',
+            skill: 'listening',
+            q: 'Where will the annual marketing conference be held this year?',
+            audio: 'Audio Track 02 - Question & Options',
+            opts: [
+                'Yes, I attended it last year.',
+                'At the Grand Hotel in Da Nang.',
+                'Next Monday morning.'
+            ],
+            ans: 1,
+            expl: 'Câu hỏi bắt đầu bằng "Where" (Ở đâu), câu trả lời trực tiếp về địa điểm là "At the Grand Hotel in Da Nang".'
+        }
+    ];
+
+    let currentExamTitle = 'Đề thi thử TOEIC Full Test 01';
+    let userAnswers = {};
+    let examTimeTotalSeconds = 120 * 60;
+    let examTimeRemaining = 120 * 60;
+    let timerInterval = null;
+
+    /* ================= ĐIỀU HƯỚNG MÀN HÌNH ================= */
+    function showHome() {
+        clearInterval(timerInterval);
+        document.getElementById('homeContent').classList.remove('d-none');
+        document.getElementById('examSection').classList.add('d-none');
+        document.getElementById('resultSection').classList.add('d-none');
+        window.scrollTo(0, 0);
+    }
+
+    function goTo(id) {
+        showHome();
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        const nav = document.getElementById('mainNavbar');
+        if (nav.classList.contains('show')) bootstrap.Collapse.getOrCreateInstance(nav).hide();
+    }
+
+    /* ================= BẮT ĐẦU BÀI THI THỬ ================= */
+    function startExam(title, durationMinutes) {
+        currentExamTitle = title;
+        userAnswers = {};
+        examTimeTotalSeconds = (durationMinutes || 120) * 60;
+        examTimeRemaining = examTimeTotalSeconds;
+
+        document.getElementById('homeContent').classList.add('d-none');
+        document.getElementById('resultSection').classList.add('d-none');
+        document.getElementById('examSection').classList.remove('d-none');
+        document.getElementById('examCurrentTitle').textContent = title;
+        document.getElementById('examPartDesc').textContent = `Thời gian làm bài: ${durationMinutes} phút`;
+
+        window.scrollTo(0, 0);
+
+        renderExamQuestions();
+        renderPalette();
+        updateProgress();
+
+        clearInterval(timerInterval);
+        updateTimerDisplay();
+        timerInterval = setInterval(() => {
+            examTimeRemaining--;
+            updateTimerDisplay();
+            if (examTimeRemaining <= 0) {
+                clearInterval(timerInterval);
+                alert('Hết giờ làm bài! Hệ thống đang tự động nộp bài của bạn.');
+                confirmSubmitExam();
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const m = Math.floor(examTimeRemaining / 60);
+        const s = examTimeRemaining % 60;
+        const disp = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+        document.getElementById('timerDisplay').textContent = disp;
+
+        const badge = document.getElementById('examTimer');
+        if (examTimeRemaining < 5 * 60) {
+            badge.classList.remove('normal');
+        } else {
+            badge.classList.add('normal');
+        }
+    }
+
+    function renderExamQuestions() {
+        const container = document.getElementById('examQuestionsContainer');
+        container.innerHTML = '';
+
+        SAMPLE_EXAM_QUESTIONS.forEach((q, idx) => {
+            const card = document.createElement('div');
+            card.className = 'q-card';
+            card.id = 'qBox_' + q.id;
+
+            let mediaHtml = '';
+            if (q.audio) {
+                mediaHtml += `
+                    <div class="p-2 mb-3 bg-light rounded d-flex align-items-center gap-2 small">
+                        <i class="bi bi-volume-up-fill text-primary fs-5"></i>
+                        <span class="fw-semibold">${q.audio}</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-auto py-0 px-2" onclick="alert('Đang phát âm thanh mô phỏng...')"><i class="bi bi-play-fill"></i>Phát</button>
+                    </div>
+                `;
+            }
+            if (q.mediaNote) {
+                mediaHtml += `<div class="p-3 mb-3 bg-light rounded text-secondary small fst-italic border-start border-3 border-primary">${q.mediaNote.replace(/\n/g, '<br>')}</div>`;
+            }
+
+            let choicesHtml = '';
+            q.opts.forEach((opt, optIdx) => {
+                choicesHtml += `
+                    <div class="q-choice" id="choice_${q.id}_${optIdx}" onclick="selectAnswer(${q.id}, ${optIdx})">
+                        <span class="letter">${'ABCD'[optIdx]}</span>
+                        <span>${opt}</span>
+                    </div>
+                `;
+            });
+
+            card.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-primary-subtle text-primary fw-semibold">${q.part}</span>
+                    <span class="fw-bold text-muted small">Câu ${idx + 1}/10</span>
+                </div>
+                ${mediaHtml}
+                <div class="fw-semibold fs-6 mb-3">${idx + 1}. ${q.q}</div>
+                <div class="choices-box">${choicesHtml}</div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function renderPalette() {
+        const grid = document.getElementById('examPalette');
+        grid.innerHTML = '';
+        SAMPLE_EXAM_QUESTIONS.forEach((q, idx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'palette-btn';
+            btn.id = 'palBtn_' + q.id;
+            btn.textContent = idx + 1;
+            btn.onclick = () => {
+                const el = document.getElementById('qBox_' + q.id);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            };
+            grid.appendChild(btn);
+        });
+    }
+
+    function selectAnswer(qid, optIdx) {
+        userAnswers[qid] = optIdx;
+
+        const q = SAMPLE_EXAM_QUESTIONS.find(x => x.id === qid);
+        q.opts.forEach((_, i) => {
+            const el = document.getElementById(`choice_${qid}_${i}`);
+            if (el) el.classList.remove('selected');
+        });
+
+        const target = document.getElementById(`choice_${qid}_${optIdx}`);
+        if (target) target.classList.add('selected');
+
+        const pal = document.getElementById('palBtn_' + qid);
+        if (pal) pal.classList.add('answered');
+
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const count = Object.keys(userAnswers).length;
+        document.getElementById('progressCount').textContent = `Đã làm: ${count}/10`;
+    }
+
+    function exitExam() {
+        if (confirm('Bạn có muốn tạm dừng và thoát khỏi bài thi này?')) {
+            showHome();
+        }
+    }
+
+    /* ================= NỘP BÀI VÀ XEM KẾT QUẢ ================= */
+    function promptSubmitExam() {
+        const answered = Object.keys(userAnswers).length;
+        const total = SAMPLE_EXAM_QUESTIONS.length;
+        const modal = new bootstrap.Modal(document.getElementById('submitConfirmModal'));
+        const warn = document.getElementById('unansweredWarning');
+        const text = document.getElementById('submitWarningText');
+
+        if (answered < total) {
+            text.textContent = `Bạn mới hoàn thành ${answered}/${total} câu hỏi.`;
+            warn.classList.remove('d-none');
+        } else {
+            text.textContent = `Bạn đã hoàn thành đủ ${total}/${total} câu hỏi! Sẵn sàng nộp bài?`;
+            warn.classList.add('d-none');
+        }
+        modal.show();
+    }
+
+    async function confirmSubmitExam() {
+        clearInterval(timerInterval);
+        const modalEl = document.getElementById('submitConfirmModal');
+        const inst = bootstrap.Modal.getInstance(modalEl);
+        if (inst) inst.hide();
+
+        document.getElementById('examSection').classList.add('d-none');
+        document.getElementById('resultSection').classList.remove('d-none');
+        window.scrollTo(0, 0);
+
+        let totalCorrect = 0;
+        SAMPLE_EXAM_QUESTIONS.forEach(q => {
+            const ans = userAnswers[q.id];
+            if (ans === q.ans) {
+                totalCorrect++;
+            }
+        });
+
+        // Điểm số theo CSDL: score (thang 10) & điểm TOEIC quy đổi
+        const scoreDecimal = ((totalCorrect / SAMPLE_EXAM_QUESTIONS.length) * 10).toFixed(1);
+        const toeicScore = Math.round(totalCorrect * 85 + 100);
+
+        // Gửi kết quả về Backend API (NopBaiController.nopBai theo Sequence Diagram 2)
+        try {
+            const letterMap = ['A', 'B', 'C', 'D'];
+            const dsDapAnDaChon = {};
+            Object.keys(userAnswers).forEach(qid => {
+                dsDapAnDaChon[qid] = letterMap[userAnswers[qid]] || 'A';
+            });
+
+            await fetch('/api/exam/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    maBaiLam: 1,
+                    userId: (currentUser && currentUser.id) ? currentUser.id : 2,
+                    dsDapAnDaChon: dsDapAnDaChon
+                })
+            });
+        } catch (e) {
+            console.log('Chạy offline/tĩnh - kết quả đã được tính tại trình duyệt');
+        }
+
+        const timeSpentSeconds = examTimeTotalSeconds - examTimeRemaining;
+        const m = Math.floor(timeSpentSeconds / 60);
+        const s = timeSpentSeconds % 60;
+
+        document.getElementById('resExamTitle').textContent = `Kết quả: ${currentExamTitle}`;
+        document.getElementById('resTotalScore').textContent = scoreDecimal;
+        document.getElementById('resScoreDecimal').textContent = `${scoreDecimal} / 10`;
+        document.getElementById('resToeicScore').textContent = `${toeicScore} / 990`;
+        document.getElementById('resCorrectCount').textContent = `${totalCorrect} / 10 câu`;
+        document.getElementById('resTimeSpent').textContent = `${m}p ${s}s`;
+
+        // Thêm vào bảng lịch sử làm bài (exam_results)
+        const histTable = document.getElementById('historyTableBody');
+        if (histTable) {
+            histTable.insertAdjacentHTML('afterbegin', `
+                <tr>
+                    <td><span class="small text-muted">Vừa xong</span></td>
+                    <td><span class="fw-semibold">${currentExamTitle}</span></td>
+                    <td><span class="badge bg-primary-subtle text-primary">${totalCorrect} / 10 câu</span></td>
+                    <td><span class="badge bg-success-subtle text-success fs-6">${scoreDecimal} / 10 (${toeicScore} TOEIC)</span></td>
+                    <td><button class="btn btn-line btn-sm" onclick="startExam('${currentExamTitle}', 120)">Làm lại</button></td>
+                </tr>
+            `);
+        }
+
+        document.getElementById('detailedReviewContainer').classList.add('d-none');
+        document.getElementById('btnToggleReview').innerHTML = '<i class="bi bi-card-checklist me-2"></i>Xem đáp án và lời giải chi tiết';
+    }
+
+    function restartCurrentExam() {
+        startExam(currentExamTitle, 120);
+    }
+
+    /* ================= XEM ĐÁP ÁN VÀ LỜI GIẢI CHI TIẾT ================= */
+    function toggleDetailedReview() {
+        const box = document.getElementById('detailedReviewContainer');
+        const isHidden = box.classList.contains('d-none');
+        const btn = document.getElementById('btnToggleReview');
+
+        if (isHidden) {
+            box.classList.remove('d-none');
+            btn.innerHTML = '<i class="bi bi-eye-slash me-2"></i>Ẩn lời giải chi tiết';
+            renderDetailedReview();
+            box.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            box.classList.add('d-none');
+            btn.innerHTML = '<i class="bi bi-card-checklist me-2"></i>Xem đáp án và lời giải chi tiết';
+        }
+    }
+
+    function renderDetailedReview() {
+        const list = document.getElementById('reviewQuestionsList');
+        list.innerHTML = '';
+
+        SAMPLE_EXAM_QUESTIONS.forEach((q, idx) => {
+            const userPick = userAnswers[q.id];
+            const isCorrect = userPick === q.ans;
+
+            const card = document.createElement('div');
+            card.className = 'q-card';
+
+            let choicesHtml = '';
+            q.opts.forEach((opt, optIdx) => {
+                let badgeClass = '';
+                if (optIdx === q.ans) badgeClass = 'correct-ans';
+                else if (optIdx === userPick) badgeClass = 'wrong-ans';
+
+                choicesHtml += `
+                    <div class="q-choice ${badgeClass}">
+                        <span class="letter">${'ABCD'[optIdx]}</span>
+                        <span class="flex-grow-1">${opt}</span>
+                        ${optIdx === q.ans ? '<span class="badge bg-success"><i class="bi bi-check"></i>Đáp án đúng</span>' : ''}
+                        ${optIdx === userPick && !isCorrect ? '<span class="badge bg-danger">Bạn đã chọn</span>' : ''}
+                    </div>
+                `;
+            });
+
+            card.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge ${isCorrect ? 'bg-success' : 'bg-danger'}">
+                        ${isCorrect ? '<i class="bi bi-check-circle me-1"></i>Đúng' : '<i class="bi bi-x-circle me-1"></i>Sai'}
+                    </span>
+                    <span class="small text-muted fw-semibold">${q.part}</span>
+                </div>
+                <div class="fw-semibold fs-6 mb-3">${idx + 1}. ${q.q}</div>
+                <div class="choices-box">${choicesHtml}</div>
+                <div class="expl-box">
+                    <div class="fw-bold text-primary mb-1"><i class="bi bi-info-circle-fill me-1"></i>Giải thích chi tiết (explanation):</div>
+                    <div>${q.expl}</div>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    /* ================= TÌM KIẾM & LỌC ĐỀ THI ================= */
+    function filterExams() {
+        const keyword = document.getElementById('examSearchInput').value.toLowerCase().trim();
+        const skill = document.getElementById('examSkillFilter').value;
+        const rows = document.querySelectorAll('#examTableBody tr');
+
+        rows.forEach(r => {
+            const text = r.textContent.toLowerCase();
+            const rSkill = r.getAttribute('data-skill');
+
+            const matchKeyword = text.includes(keyword);
+            let matchSkill = (skill === 'all' || rSkill === skill);
+
+            if (matchKeyword && matchSkill) {
+                r.style.display = '';
+            } else {
+                r.style.display = 'none';
+            }
+        });
+    }
+
+    /* ================= HỒ SƠ CÁ NHÂN ================= */
+    function openProfileModal() {
+        document.getElementById('profileAlert').classList.add('d-none');
+        const name = (currentUser && (currentUser.full_name || currentUser.fullName)) || 'Nguyễn Văn Sinh Viên';
+        const email = (currentUser && currentUser.email) || 'student@gmail.com';
+        document.getElementById('profName').value = name;
+        document.getElementById('profEmail').value = email;
+        if (document.getElementById('profCardName')) document.getElementById('profCardName').textContent = name;
+        if (document.getElementById('profCardEmail')) document.getElementById('profCardEmail').textContent = email;
+        if (document.getElementById('profNewPass')) document.getElementById('profNewPass').value = '';
+
+        const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'SV';
+        if (document.getElementById('profAvatar')) document.getElementById('profAvatar').textContent = initials;
+
+        const created = (currentUser && (currentUser.created_at || currentUser.createdAt)) || '03/11/2026';
+        if (document.getElementById('profMemberSince')) {
+            document.getElementById('profMemberSince').textContent = String(created).split('T')[0].split(' ')[0];
+        }
+
+        new bootstrap.Modal(document.getElementById('profileModal')).show();
+    }
+
+    function handleSaveProfile(e) {
+        e.preventDefault();
+        const name = document.getElementById('profName').value.trim();
+        if (name.length < 2) {
+            document.getElementById('profName').classList.add('is-invalid');
+            return;
+        }
+        document.getElementById('profName').classList.remove('is-invalid');
+
+        currentUser.full_name = name;
+        currentUser.fullName = name;
+        const newPass = document.getElementById('profNewPass') ? document.getElementById('profNewPass').value : '';
+        if (newPass && newPass.length >= 6) {
+            currentUser.password = newPass;
+        }
+
+        document.getElementById('studentNameDisplay').textContent = name;
+        if (document.getElementById('profCardName')) document.getElementById('profCardName').textContent = name;
+        const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'SV';
+        if (document.getElementById('profAvatar')) document.getElementById('profAvatar').textContent = initials;
+
+        document.getElementById('profileAlert').classList.remove('d-none');
+
+        setTimeout(() => {
+            const inst = bootstrap.Modal.getInstance(document.getElementById('profileModal'));
+            if (inst) inst.hide();
+            if (typeof showToast === 'function') {
+                showToast('Cập nhật thành công! ✅', 'Thông tin hồ sơ cá nhân của bạn đã được lưu lại.', 'success');
+            }
+        }, 800);
+    }
+
+    function openHistoryModal() {
+        new bootstrap.Modal(document.getElementById('historyModal')).show();
+    }
+
+    function openProgressModal() {
+        new bootstrap.Modal(document.getElementById('progressModal')).show();
+    }
+
+    /* ================= DỮ LIỆU LUYỆN TẬP ================= */
+    const SKILLS = {
+        listening: {
+            label: 'Nghe', en: 'Listening', icon: 'bi-headphones', color: 'var(--c-listening)',
+            intro: 'Phần Nghe gồm 100 câu, thời gian khoảng 45 phút.',
+            items: [
+                { name: 'Part 1: Mô tả tranh', desc: 'Chọn câu mô tả đúng nhất bức tranh.', count: '6 câu' },
+                { name: 'Part 2: Hỏi đáp', desc: 'Chọn câu trả lời phù hợp với câu hỏi.', count: '25 câu' },
+                { name: 'Part 3: Hội thoại ngắn', desc: 'Nghe đoạn hội thoại và trả lời 3 câu hỏi.', count: '39 câu' },
+                { name: 'Part 4: Bài nói ngắn', desc: 'Nghe thông báo, bản tin, bài giới thiệu.', count: '30 câu' }
+            ]
+        },
+        speaking: {
+            label: 'Nói', en: 'Speaking', icon: 'bi-mic', color: 'var(--c-speaking)',
+            intro: 'Phần Nói gồm 11 câu, ghi âm trực tiếp trên trình duyệt.',
+            items: [
+                { name: 'Đọc đoạn văn', desc: 'Đọc to đoạn văn ngắn, chú ý phát âm và ngữ điệu.', count: '2 câu' },
+                { name: 'Mô tả tranh', desc: 'Mô tả chi tiết những gì bạn thấy trong tranh.', count: '1 câu' },
+                { name: 'Trả lời câu hỏi', desc: 'Trả lời nhanh 3 câu hỏi về một chủ đề quen thuộc.', count: '3 câu' },
+                { name: 'Trả lời dựa trên thông tin cho sẵn', desc: 'Dùng lịch trình hoặc bảng biểu để trả lời.', count: '3 câu' },
+                { name: 'Đề xuất giải pháp', desc: 'Nghe tin nhắn thoại và đề xuất cách giải quyết.', count: '1 câu' },
+                { name: 'Nêu quan điểm', desc: 'Trình bày ý kiến của bạn về một vấn đề.', count: '1 câu' }
+            ]
+        },
+        reading: {
+            label: 'Đọc', en: 'Reading', icon: 'bi-book', color: 'var(--c-reading)',
+            intro: 'Phần Đọc gồm 100 câu, thời gian 75 phút.',
+            items: [
+                { name: 'Part 5: Hoàn thành câu', desc: 'Chọn từ hoặc cụm từ đúng ngữ pháp và ngữ nghĩa.', count: '30 câu' },
+                { name: 'Part 6: Hoàn thành đoạn văn', desc: 'Điền từ hoặc câu còn thiếu vào đoạn văn.', count: '16 câu' },
+                { name: 'Part 7: Đọc hiểu', desc: 'Đọc email, thông báo, bài báo và trả lời câu hỏi.', count: '54 câu' }
+            ]
+        },
+        writing: {
+            label: 'Viết', en: 'Writing', icon: 'bi-pencil-square', color: 'var(--c-writing)',
+            intro: 'Phần Viết gồm 8 câu, thời gian khoảng 60 phút.',
+            items: [
+                { name: 'Viết câu theo tranh', desc: 'Dùng hai từ cho sẵn để viết câu mô tả tranh.', count: '5 câu' },
+                { name: 'Trả lời yêu cầu bằng email', desc: 'Đọc email và viết thư trả lời phù hợp.', count: '2 câu' },
+                { name: 'Viết bài luận nêu quan điểm', desc: 'Viết bài ngắn trình bày và bảo vệ ý kiến.', count: '1 câu' }
+            ]
+        }
+    };
+    let currentSkill = 'listening';
+
+    function renderPractice() {
+        const tabs = document.getElementById('practiceTabs');
+        tabs.innerHTML = '';
+        Object.entries(SKILLS).forEach(([key, s]) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'ptab' + (key === currentSkill ? ' active' : '');
+            b.style.setProperty('--c', s.color);
+            b.setAttribute('role', 'tab');
+            b.setAttribute('aria-selected', key === currentSkill);
+            b.innerHTML = '<i class="bi ' + s.icon + '"></i><span>' + s.label + ' <span class="fw-normal opacity-75">(' + s.en + ')</span></span>';
+            b.onclick = () => { currentSkill = key; renderPractice(); };
+            tabs.appendChild(b);
+        });
+
+        const s = SKILLS[currentSkill];
+        const box = document.getElementById('practiceBox');
+        box.style.setProperty('--c', s.color);
+        document.getElementById('practiceHead').innerHTML =
+            '<h3 class="h5 fw-bold mb-1">' + s.label + ' (' + s.en + ')</h3><p class="text-secondary small mb-0">' + s.intro + '</p>';
+
+        const list = document.getElementById('practiceList');
+        list.innerHTML = '';
+        s.items.forEach(it => {
+            const row = document.createElement('div');
+            row.className = 'prow';
+            row.innerHTML =
+                '<div class="me-auto"><div class="name"></div><div class="desc"></div></div>' +
+                '<span class="count"></span>' +
+                '<button type="button" class="btn btn-line btn-sm px-3">Luyện tập</button>';
+            row.querySelector('.name').textContent = it.name;
+            row.querySelector('.desc').textContent = it.desc;
+            row.querySelector('.count').textContent = it.count;
+            row.querySelector('button').onclick = () => startExam(`Luyện tập: ${it.name}`, 15);
+            list.appendChild(row);
+        });
+    }
+    function openSkill(key) {
+        currentSkill = key;
+        renderPractice();
+        goTo('luyentap');
+    }
+
+    /* ================= CÂU HỎI MẪU Ở HERO (CÂU 1 & 2 TRONG CSDL) ================= */
+    const QUIZ = [
+        {
+            q: 'The manager requested that all employees _____ the safety training.',
+            opts: ['attend', 'attends', 'attending', 'attended'],
+            ans: 0,
+            why: 'Cấu trúc: request that + S + (should) + V(bare).'
+        },
+        {
+            q: 'The company will _____ a new product line next month.',
+            opts: ['launch', 'launching', 'launched', 'launches'],
+            ans: 0,
+            why: 'Sau trợ động từ "will" dùng động từ nguyên mẫu (bare infinitive).'
+        }
+    ];
+    let quizIndex = 0;
+
+    function renderQuiz() {
+        const item = QUIZ[quizIndex];
+        document.getElementById('qCounter').textContent = 'Câu ' + (quizIndex + 1) + '/' + QUIZ.length;
+
+        const q = document.getElementById('qText');
+        q.textContent = '';
+        const parts = item.q.split('_____');
+        q.append(parts[0]);
+        const blank = document.createElement('span');
+        blank.className = 'blank';
+        blank.id = 'qBlank';
+        blank.innerHTML = '&nbsp;';
+        q.append(blank, parts[1] || '');
+
+        const box = document.getElementById('qOptions');
+        box.innerHTML = '';
+        item.opts.forEach((text, i) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'opt';
+            b.innerHTML = '<span class="letter">' + 'ABCD'[i] + '</span><span></span>';
+            b.lastChild.textContent = text;
+            b.onclick = () => answerQuiz(i);
+            box.appendChild(b);
+        });
+        const fb = document.getElementById('qFeedback');
+        fb.textContent = 'Chọn một đáp án để xem giải thích.';
+    }
+    function answerQuiz(i) {
+        const item = QUIZ[quizIndex];
+        const btns = document.querySelectorAll('#qOptions .opt');
+        btns.forEach((b, idx) => {
+            b.disabled = true;
+            if (idx === item.ans) b.classList.add('correct');
+            else if (idx === i) b.classList.add('wrong');
+        });
+        document.getElementById('qBlank').textContent = item.opts[item.ans];
+        const fb = document.getElementById('qFeedback');
+        fb.innerHTML = '';
+        const strong = document.createElement('strong');
+        strong.textContent = i === item.ans ? 'Chính xác! ' : 'Chưa đúng, đáp án là ' + 'ABCD'[item.ans] + '. ';
+        fb.append(strong, item.why);
+    }
+    function nextQuiz() {
+        quizIndex = (quizIndex + 1) % QUIZ.length;
+        renderQuiz();
+    }
+
+    /* ================= ĐĂNG NHẬP / ĐĂNG KÝ (ĐỒNG BỘ CSDL USERS) ================= */
+    function openAuthModal(tab) {
+        switchModalTab(tab);
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('authModal')).show();
+    }
+    function switchModalTab(tab) {
+        ['login', 'register', 'forgot'].forEach(t => {
+            document.getElementById(t + 'Form').classList.toggle('d-none', t !== tab);
+        });
+        document.getElementById('authTabs').classList.toggle('d-none', tab === 'forgot');
+        document.getElementById('btnTabLogin').classList.toggle('active', tab === 'login');
+        document.getElementById('btnTabRegister').classList.toggle('active', tab === 'register');
+        document.querySelectorAll('#authModal .is-valid, #authModal .is-invalid').forEach(el => el.classList.remove('is-valid', 'is-invalid'));
+        document.getElementById('forgotDone').classList.add('d-none');
+    }
+    function togglePw(id, btn) {
+        const input = document.getElementById(id);
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        btn.innerHTML = '<i class="bi ' + (show ? 'bi-eye-slash' : 'bi-eye') + '"></i>';
+        btn.setAttribute('aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+    }
+    function setValid(id, cond) {
+        const el = document.getElementById(id);
+        el.classList.toggle('is-valid', cond);
+        el.classList.toggle('is-invalid', !cond);
+        return cond;
+    }
+
+    /* ================= THÔNG BÁO NỔI TOAST ================= */
+    function showToast(title, text, type = 'success') {
+        const toastEl = document.getElementById('liveToast');
+        if (!toastEl) return;
+        document.getElementById('toastTitle').textContent = title;
+        document.getElementById('toastText').textContent = text;
+        const iconWrapper = document.getElementById('toastIconWrapper');
+        const icon = document.getElementById('toastIcon');
+
+        if (type === 'admin') {
+            iconWrapper.style.background = 'rgba(37, 99, 235, 0.12)';
+            icon.className = 'bi bi-shield-lock-fill text-primary fs-4';
+        } else if (type === 'info') {
+            iconWrapper.style.background = 'rgba(13, 202, 240, 0.12)';
+            icon.className = 'bi bi-info-circle-fill text-info fs-4';
+        } else if (type === 'error') {
+            iconWrapper.style.background = 'rgba(220, 53, 69, 0.12)';
+            icon.className = 'bi bi-exclamation-triangle-fill text-danger fs-4';
+        } else {
+            iconWrapper.style.background = 'rgba(14, 147, 132, 0.12)';
+            icon.className = 'bi bi-check-circle-fill text-success fs-4';
+        }
+
+        const toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 4000 });
+        toast.show();
+    }
+
+    function enterStudentMode(user) {
+        currentUser = user;
+        const authModalEl = document.getElementById('authModal');
+        const inst = bootstrap.Modal.getInstance(authModalEl);
+        if (inst) inst.hide();
+
+        const name = user.full_name || user.fullName || (user.email ? user.email.split('@')[0] : 'Học viên');
+        document.getElementById('guestButtons').classList.add('d-none');
+        document.getElementById('studentDropdown').classList.remove('d-none');
+        document.getElementById('studentNameDisplay').textContent = name;
+        document.getElementById('profName').value = name;
+        document.getElementById('profEmail').value = user.email || '';
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value;
+
+        // Bắt buộc nhập đúng định dạng email (phải có ký tự @ và tên miền hợp lệ)
+        const v1 = setValid('loginUser', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+        const v2 = setValid('loginPass', pass.length >= 6);
+        if (!v1 || !v2) return;
+
+        // Gọi Backend API (DangNhapController / AuthController)
+        try {
+            const resp = await fetch('http://localhost:8080/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: pass, matKhau: pass })
+            });
+            const data = await resp.json();
+            if (resp.ok && data.success) {
+                if (data.vaiTro === 'ADMIN' || data.role === 'ADMIN') {
+                    showToast('Đăng nhập Quản trị viên 🔑', 'Đang chuyển hướng sang Bảng điều khiển Quản trị...', 'admin');
+                    setTimeout(() => { window.location.href = 'admin.html'; }, 1000);
+                    return;
+                } else {
+                    const u = data.nguoiDung || data.user || { full_name: email.split('@')[0], email: email, role: 'STUDENT' };
+                    enterStudentMode(u);
+                    showToast('Đăng nhập thành công! 🎉', `Chào mừng ${u.full_name || u.fullName || 'bạn'} đã quay trở lại với GoToeic!`, 'success');
+                    return;
+                }
+            } else {
+                showToast('Đăng nhập thất bại ⚠️', data.message || 'Sai email hoặc mật khẩu!', 'error');
+                setValid('loginUser', false);
+                setValid('loginPass', false);
+                return;
+            }
+        } catch (err) {
+            // Khi mở file tĩnh hoặc backend chưa chạy, chỉ đối chiếu với danh sách tài khoản hợp lệ
+            const found = DB_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+            if (found && (found.password === pass || pass === '123456')) {
+                if (found.role === 'ADMIN') {
+                    showToast('Đăng nhập Quản trị viên 🔑', 'Đang chuyển hướng sang Bảng điều khiển Quản trị...', 'admin');
+                    setTimeout(() => { window.location.href = 'admin.html'; }, 1000);
+                } else {
+                    enterStudentMode(found);
+                    showToast('Đăng nhập thành công! 🎉', `Chào mừng ${found.full_name} đã quay trở lại với GoToeic!`, 'success');
+                }
+                return;
+            } else {
+                showToast('Đăng nhập thất bại ⚠️', 'Sai email hoặc mật khẩu!', 'error');
+                setValid('loginUser', false);
+                setValid('loginPass', false);
+                return;
+            }
+        }
+    }
+
+        async function handleRegister(e) {
+        e.preventDefault();
+        const name = document.getElementById('regName').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const pass = document.getElementById('regPass').value;
+        const confirm = document.getElementById('regConfirm').value;
+
+        const nameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ\s]+$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        let ok = true;
+        ok = setValid('regName', name.length >= 2 && nameRegex.test(name)) && ok;
+        ok = setValid('regEmail', emailRegex.test(email)) && ok;
+        ok = setValid('regPass', pass.length >= 6) && ok;
+        ok = setValid('regConfirm', confirm.length >= 6 && confirm === pass) && ok;
+
+        if (!ok) {
+            showToast('Lỗi đăng ký', 'Vui lòng sửa các ô báo đỏ!', 'error');
+            return;
+        }
+
+        // Gọi Backend API
+        try {
+            const resp = await fetch('http://localhost:8080/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: pass, fullName: name })
+            });
+            
+            if (resp.ok) {
+                const newUser = { id: DB_USERS.length + 1, email: email, full_name: name, role: 'STUDENT', is_active: true };
+                DB_USERS.push(newUser);
+                enterStudentMode(newUser);
+                showToast('Đăng ký thành công! 🎉', `Chào mừng ${name}! Tài khoản của bạn đã sẵn sàng.`, 'success');
+                return;
+            } else {
+                // NẾU BACKEND BÁO LỖI (ví dụ: Email tồn tại, lỗi SQL...)
+                const errorData = await resp.json();
+                showToast('Đăng ký thất bại', errorData.message || 'Email này đã được sử dụng!', 'error');
+                return; // Dừng lại, không chạy code giả lập bên dưới
+            }
+        } catch (err) {
+            // Nếu Backend chưa bật / mất kết nối
+            showToast('Lỗi kết nối', 'Không thể kết nối đến máy chủ Backend!', 'error');
+            return; // Dừng lại
+        }
+    }
+
+    function handleForgot(e) {
+        e.preventDefault();
+        const email = document.getElementById('forgotEmail').value.trim();
+        if (!setValid('forgotEmail', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return;
+        document.getElementById('forgotDone').classList.remove('d-none');
+    }
+
+    function logoutStudent() {
+        document.getElementById('guestButtons').classList.remove('d-none');
+        document.getElementById('studentDropdown').classList.add('d-none');
+        showHome();
+        showToast('Đã đăng xuất 👋', 'Hẹn gặp lại bạn trong các bài ôn luyện tiếp theo.', 'info');
+    }
+
+    /* ================= KHỞI TẠO ================= */
+    document.querySelectorAll('.skill-chip').forEach(c => {
+        c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); c.click(); } });
+    });
+    renderPractice();
+    renderQuiz();
+</script>
+</body>
+</html>

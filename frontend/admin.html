@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GoToeic Admin - Bảng điều khiển Quản trị</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent: #2563eb;
+            --surface: #ffffff;
+            --border-line: #e2e8f0;
+            --bg-body: #f8fafc;
+        }
+
+        body { background-color: var(--bg-body); color: #1e293b; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+        .admin-layout { min-height: 100vh; display: flex; }
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: #cbd5e1; flex-shrink: 0; display: flex; flex-direction: column; }
+        .side-btn { width: 100%; text-align: left; background: transparent; border: none; color: #94a3b8; padding: 0.75rem 1rem; border-radius: 0.55rem; font-weight: 500; font-size: 0.93rem; margin-bottom: 0.25rem; transition: all 0.15s ease; display: flex; align-items: center; }
+        .side-btn:hover { background: var(--sidebar-hover); color: #ffffff; }
+        .side-btn.active { background: var(--accent); color: #ffffff; font-weight: 600; }
+        .clean-card { background: var(--surface); border: 1px solid var(--border-line); border-radius: 0.9rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03); }
+        .form-control, .form-select { border-radius: 0.55rem; border-color: #cbd5e1; padding: 0.55rem 0.8rem; }
+        .form-control:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15); }
+        .modal-content { border-radius: 1rem; border: none; }
+        .table> :not(caption)>*>* { padding: 0.85rem 1rem; }
+        .dropzone { border: 2px dashed #cbd5e1; border-radius: 0.85rem; padding: 2.5rem 1.5rem; text-align: center; background: #f8fafc; cursor: pointer; transition: all 0.2s; }
+        .dropzone:hover { border-color: var(--accent); background: #eff6ff; }
+    </style>
+</head>
+
+<body onload="loadQuestions()">
+
+    <div class="admin-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar p-3">
+            <div class="d-flex align-items-center gap-2 text-white fs-5 fw-bold pb-3 mb-3 border-bottom border-secondary">
+                <span class="badge bg-primary p-2 rounded-3"><i class="bi bi-mortarboard-fill"></i></span>
+                <span>GoToeic Admin</span>
+            </div>
+            <div class="flex-grow-1">
+                <button class="side-btn active" id="btnDash" onclick="switchAdminTab('dash')"><i class="bi bi-speedometer2 me-2 fs-6"></i>Bảng điều khiển</button>
+                <button class="side-btn" id="btnQuest" onclick="switchAdminTab('quest')"><i class="bi bi-database-check me-2 fs-6"></i>Ngân hàng câu hỏi</button>
+                <button class="side-btn" id="btnExam" onclick="switchAdminTab('exam')"><i class="bi bi-journal-text me-2 fs-6"></i>Quản lý đề thi</button>
+                <button class="side-btn" id="btnPart" onclick="switchAdminTab('part')"><i class="bi bi-layers me-2 fs-6"></i>Part &amp; Chủ đề</button>
+                <button class="side-btn" id="btnUser" onclick="switchAdminTab('user')"><i class="bi bi-people me-2 fs-6"></i>Tài khoản &amp; Quyền</button>
+                <button class="side-btn" id="btnImp" onclick="switchAdminTab('imp')"><i class="bi bi-arrow-left-right me-2 fs-6"></i>Nhập / Xuất dữ liệu</button>
+            </div>
+            <div class="pt-3 border-top border-secondary">
+                <a href="index.html" class="btn btn-outline-light btn-sm w-100 py-2"><i class="bi bi-box-arrow-left me-1"></i>Đăng xuất</a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="flex-grow-1 d-flex flex-column" style="overflow-x: hidden;">
+            <header class="bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-0" id="adminHeaderTitle">Bảng điều khiển &amp; Thống kê</h5>
+                    <small class="text-secondary" id="adminHeaderSub">Tổng quan hệ thống thi và quản trị học viên</small>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-success-subtle text-success py-2 px-3 rounded-pill fw-semibold"><i class="bi bi-shield-check me-1"></i>Quản trị viên</span>
+                    <img src="https://ui-avatars.com/api/?name=Admin+Toeic&background=0f172a&color=fff" class="rounded-circle border" width="38" height="38" alt="Avatar" />
+                </div>
+            </header>
+
+            <div class="p-4 flex-grow-1">
+
+                <!-- 1. TAB BẢNG ĐIỀU KHIỂN -->
+                <div id="viewDash">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Tổng tài khoản (users)</div><div class="fs-3 fw-bold text-primary mt-1">2</div><div class="small text-muted mt-1">1 Admin, 1 Sinh viên</div></div></div>
+                        <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Ngân hàng câu hỏi</div><div class="fs-3 fw-bold text-success mt-1" id="dashTotalQuestions">...</div><div class="small text-muted mt-1">Trong CSDL</div></div></div>
+                        <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Đề thi (exams)</div><div class="fs-3 fw-bold text-dark mt-1">1</div><div class="small text-muted mt-1">Đề thi TOEIC Full Test 01</div></div></div>
+                        <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Điểm trung bình</div><div class="fs-3 fw-bold text-info mt-1">5.0 / 10</div><div class="small text-success mt-1">Từ bảng exam_results</div></div></div>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-7">
+                            <div class="clean-card p-4 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0">Phổ điểm thi thử gần đây</h6>
+                                    <span class="badge bg-light text-dark border">Tháng 11/2026</span>
+                                </div>
+                                <div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>Trên 800 điểm</span><span>340 SV (19%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-success" style="width: 19%"></div></div></div>
+                                <div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>650 - 795 điểm</span><span>720 SV (40%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-primary" style="width: 40%"></div></div></div>
+                                <div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>500 - 645 điểm</span><span>540 SV (30%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-info" style="width: 30%"></div></div></div>
+                                <div><div class="d-flex justify-content-between small fw-semibold mb-1"><span>Dưới 500 điểm</span><span>220 SV (11%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-warning" style="width: 11%"></div></div></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="clean-card p-4 h-100">
+                                <h6 class="fw-bold mb-3">Lịch sử nộp bài gần đây</h6>
+                                <div class="list-group list-group-flush small">
+                                    <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                        <div><div class="fw-semibold">Nguyễn Văn Sinh Viên</div><div class="text-muted">Đề thi thử TOEIC 01</div></div>
+                                        <span class="badge bg-success-subtle text-success fs-6">5.0 điểm</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. TAB QUẢN LÝ CÂU HỎI -->
+                <div id="viewQuest" class="d-none">
+                    <div class="clean-card p-4">
+                        <div class="row align-items-center justify-content-between g-3 mb-3">
+                            <div class="col-md-7 d-flex gap-2">
+                                <input type="text" id="questSearch" class="form-control" placeholder="Tìm theo nội dung câu hỏi..." onkeyup="filterQuestionsTable()" />
+                                <select id="questPartFilter" class="form-select w-auto" onchange="filterQuestionsTable()">
+                                    <option value="all">Tất cả Part</option><option value="Part 5">Part 5</option><option value="Part 6">Part 6</option><option value="Part 7">Part 7</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5 text-md-end">
+                                <button class="btn btn-primary" onclick="openAddModal()"><i class="bi bi-plus-circle me-1"></i>Thêm câu hỏi</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light small">
+                                    <tr><th>ID</th><th>Part TOEIC</th><th>Chủ đề</th><th>Mức độ</th><th>Nội dung câu hỏi</th><th>Đáp án đúng</th><th class="text-end">Thao tác</th></tr>
+                                </thead>
+                                <tbody id="qTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. TAB QUẢN LÝ ĐỀ THI -->
+                <div id="viewExam" class="d-none">
+                    <div class="clean-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">Danh sách Đề thi thử TOEIC</h6>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createExamModal"><i class="bi bi-plus-circle me-1"></i>Tạo đề thi</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light small"><tr><th>Mã đề</th><th>Tên đề thi</th><th>Kỹ năng</th><th>Thời gian</th><th>Số câu</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>ID 1</code></td><td class="fw-semibold">Đề thi TOEIC Full Test 01</td><td>Nghe &amp; Đọc</td><td>120 phút</td><td>200 câu</td>
+                                        <td><span class="badge bg-success-subtle text-success">Công khai</span></td>
+                                        <td class="text-end"><button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteTableRow(this)"><i class="bi bi-trash"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. TAB PART & CHỦ ĐỀ -->
+                <div id="viewPart" class="d-none">
+                    <div class="row g-4">
+                        <div class="col-lg-7">
+                            <div class="clean-card p-4">
+                                <h6 class="fw-bold mb-3">Cấu trúc 7 Part TOEIC</h6>
+                                <table class="table align-middle mb-0">
+                                    <thead class="table-light small"><tr><th>Part</th><th>Tên</th><th>Kỹ năng</th><th>Số câu</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>Part 1</td><td>Mô tả tranh</td><td>Listening</td><td>6 câu</td></tr>
+                                        <tr><td>Part 2</td><td>Hỏi &amp; Đáp</td><td>Listening</td><td>25 câu</td></tr>
+                                        <tr><td>Part 5</td><td>Hoàn thành câu</td><td>Reading</td><td>30 câu</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="clean-card p-4">
+                                <h6 class="fw-bold mb-3">Danh sách Chủ đề</h6>
+                                <ul class="list-group list-group-flush small">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0"><span><i class="bi bi-bookmark text-primary me-2"></i>Grammar</span><span class="badge bg-light text-dark border">420 câu</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0"><span><i class="bi bi-bookmark text-primary me-2"></i>Contracts</span><span class="badge bg-light text-dark border">260 câu</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. TAB TÀI KHOẢN & QUYỀN -->
+                <div id="viewUser" class="d-none">
+                    <div class="clean-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">Danh sách Tài khoản</h6>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal"><i class="bi bi-person-plus me-1"></i>Thêm tài khoản</button>
+                        </div>
+                        <table class="table align-middle table-hover mb-0">
+                            <thead class="table-light small"><tr><th>Mã</th><th>Họ và tên</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th></tr></thead>
+                            <tbody>
+                                <tr><td><code>ID 1</code></td><td>Quản Trị Viên</td><td>admin@gmail.com</td><td><span class="badge bg-danger-subtle text-danger">ADMIN</span></td><td><span class="badge bg-success-subtle text-success">Hoạt động</span></td></tr>
+                                <tr><td><code>ID 2</code></td><td>Nguyễn Văn Sinh Viên</td><td>student@gmail.com</td><td><span class="badge bg-primary-subtle text-primary">STUDENT</span></td><td><span class="badge bg-success-subtle text-success">Hoạt động</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 6. TAB NHẬP / XUẤT DỮ LIỆU -->
+                <div id="viewImp" class="d-none">
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="clean-card p-4 h-100">
+                                <h6 class="fw-bold mb-2"><i class="bi bi-file-earmark-arrow-up text-primary me-2"></i>Nhập câu hỏi từ File Excel</h6>
+                                <div class="dropzone mb-3"><i class="bi bi-cloud-arrow-up text-primary fs-1"></i><div class="fw-semibold mt-2">Kéo thả file vào đây</div></div>
+                                <button class="btn btn-primary w-100">Bắt đầu Nhập dữ liệu</button>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="clean-card p-4 h-100">
+                                <h6 class="fw-bold mb-2"><i class="bi bi-file-earmark-arrow-down text-success me-2"></i>Xuất dữ liệu</h6>
+                                <button class="btn btn-outline-primary w-100 mb-2">Xuất file Excel Câu hỏi</button>
+                                <button class="btn btn-outline-success w-100">Xuất file CSV Điểm thi</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM/SỬA CÂU HỎI -->
+    <div class="modal fade" id="questionModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold" id="modalQuestionTitle"><i class="bi bi-plus-circle text-primary me-2"></i>Thêm Câu hỏi TOEIC</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="addQForm" novalidate onsubmit="handleSaveQuestion(event)">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Part TOEIC *</label>
+                                <select id="qPart" class="form-select" required>
+                                    <option value="Part 5" selected>Part 5: Incomplete Sentences</option>
+                                    <option value="Part 6">Part 6: Text Completion</option>
+                                    <option value="Part 7">Part 7: Reading Comprehension</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4"><label class="form-label small fw-semibold">Chủ đề *</label><input type="text" id="qTopic" class="form-control" placeholder="VD: Grammar" required /></div>
+                            <div class="col-md-4"><label class="form-label small fw-semibold">Mức độ *</label><select id="qLevel" class="form-select"><option value="Dễ">Dễ</option><option value="Trung bình" selected>Trung bình</option><option value="Khó">Khó</option></select></div>
+                            <div class="col-12"><label class="form-label small fw-semibold">Nội dung câu hỏi *</label><textarea id="qContent" class="form-control" rows="2" required></textarea></div>
+                            <div class="col-md-6"><label class="form-label small fw-semibold">A *</label><input type="text" id="optA" class="form-control" required /></div>
+                            <div class="col-md-6"><label class="form-label small fw-semibold">B *</label><input type="text" id="optB" class="form-control" required /></div>
+                            <div class="col-md-6"><label class="form-label small fw-semibold">C *</label><input type="text" id="optC" class="form-control" required /></div>
+                            <div class="col-md-6"><label class="form-label small fw-semibold">D *</label><input type="text" id="optD" class="form-control" required /></div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Đáp án đúng *</label>
+                                <select id="qCorrect" class="form-select" required><option value="">-- Chọn --</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+                            </div>
+                            <div class="col-md-8"><label class="form-label small fw-semibold">Giải thích chi tiết</label><input type="text" id="qExpl" class="form-control" /></div>
+                            <div class="col-12 mt-4"><button type="submit" class="btn btn-primary w-100 py-2" id="btnSaveQuestion">Lưu vào Database</button></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CÁC MODAL PHỤ (Đề thi, Chủ đề, Tài khoản) -->
+    <div class="modal fade" id="createExamModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content p-4 text-center">Tính năng Tạo đề thi đang phát triển...</div></div></div>
+    <div class="modal fade" id="topicModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content p-4 text-center">Tính năng Thêm chủ đề đang phát triển...</div></div></div>
+    <div class="modal fade" id="userModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content p-4 text-center">Tính năng Thêm user đang phát triển...</div></div></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allQuestions = []; 
+        let editingQuestionId = null; 
+
+        const TABS = {
+            dash: { title: 'Bảng điều khiển & Thống kê', sub: 'Tổng quan hệ thống thi và quản trị học viên' },
+            quest: { title: 'Quản lý Ngân hàng Câu hỏi', sub: 'Thêm, sửa, xóa câu hỏi' },
+            exam: { title: 'Tạo và Quản lý Đề thi thử', sub: 'Quản lý bộ đề' },
+            part: { title: 'Quản lý Part & Chủ đề', sub: 'Cấu trúc bài thi' },
+            user: { title: 'Quản lý Tài khoản', sub: 'Danh sách người dùng' },
+            imp: { title: 'Nhập / Xuất dữ liệu', sub: 'Excel/CSV' }
+        };
+
+        function switchAdminTab(tabKey) {
+            const btnMap = { dash: 'btnDash', quest: 'btnQuest', exam: 'btnExam', part: 'btnPart', user: 'btnUser', imp: 'btnImp' };
+            Object.values(btnMap).forEach(bId => document.getElementById(bId).classList.remove('active'));
+            document.getElementById(btnMap[tabKey]).classList.add('active');
+
+            const viewMap = { dash: 'viewDash', quest: 'viewQuest', exam: 'viewExam', part: 'viewPart', user: 'viewUser', imp: 'viewImp' };
+            Object.values(viewMap).forEach(vId => document.getElementById(vId).classList.add('d-none'));
+            document.getElementById(viewMap[tabKey]).classList.remove('d-none');
+
+            const info = TABS[tabKey];
+            document.getElementById('adminHeaderTitle').textContent = info.title;
+            document.getElementById('adminHeaderSub').textContent = info.sub;
+            
+            if(tabKey === 'quest') loadQuestions();
+        }
+
+        function filterQuestionsTable() {
+            const text = document.getElementById('questSearch').value.toLowerCase().trim();
+            const part = document.getElementById('questPartFilter').value;
+            const rows = document.querySelectorAll('#qTableBody tr');
+            rows.forEach(r => {
+                const rText = r.textContent.toLowerCase();
+                const rPart = r.children[1].textContent.trim();
+                r.style.display = (rText.includes(text) && (part === 'all' || rPart.includes(part))) ? '' : 'none';
+            });
+        }
+
+        function openAddModal() {
+            editingQuestionId = null;
+            document.getElementById('addQForm').reset();
+            document.getElementById('modalQuestionTitle').innerHTML = '<i class="bi bi-plus-circle text-primary me-2"></i>Thêm Câu hỏi TOEIC';
+            document.getElementById('btnSaveQuestion').innerText = 'Lưu vào Database';
+            new bootstrap.Modal(document.getElementById('questionModal')).show();
+        }
+
+        function editQuestion(id) {
+            const q = allQuestions.find(item => item.id === id);
+            if (!q) return;
+
+            editingQuestionId = id;
+            document.getElementById('qPart').value = q.part || 'Part 5';
+            document.getElementById('qTopic').value = q.examId || 1; 
+            document.getElementById('qContent').value = q.content || '';
+            document.getElementById('optA').value = q.optionA || '';
+            document.getElementById('optB').value = q.optionB || '';
+            document.getElementById('optC').value = q.optionC || '';
+            document.getElementById('optD').value = q.optionD || '';
+            document.getElementById('qCorrect').value = q.correctAnswer || '';
+            document.getElementById('qExpl').value = q.explanation || '';
+
+            document.getElementById('modalQuestionTitle').innerHTML = '<i class="bi bi-pencil-square text-warning me-2"></i>Cập nhật Câu hỏi';
+            document.getElementById('btnSaveQuestion').innerText = 'Cập nhật thay đổi';
+            new bootstrap.Modal(document.getElementById('questionModal')).show();
+        }
+
+        async function loadQuestions() {
+            try {
+                const response = await fetch('http://localhost:8080/api/questions');
+                if (response.ok) {
+                    allQuestions = await response.json();
+                    const tbody = document.getElementById('qTableBody');
+                    tbody.innerHTML = ''; 
+                    document.getElementById('dashTotalQuestions').textContent = allQuestions.length;
+
+                    if (allQuestions.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Chưa có câu hỏi nào.</td></tr>';
+                        return;
+                    }
+
+                    allQuestions.forEach(q => {
+                        tbody.insertAdjacentHTML('beforeend', `
+                            <tr>
+                                <td>#${q.id}</td>
+                                <td><span class="badge bg-primary-subtle text-primary">${q.part || 'Part 5'}</span></td>
+                                <td>Đề ${q.examId}</td>
+                                <td><span class="badge bg-info-subtle text-info">Trung bình</span></td>
+                                <td>${q.content}</td>
+                                <td><span class="badge bg-success-subtle text-success">${q.correctAnswer}</span></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-secondary py-1 px-2" onclick="editQuestion(${q.id})"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteQuestion(${q.id})"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        `);
+                    });
+                }
+            } catch (error) { console.error("Lỗi tải danh sách:", error); }
+        }
+
+        async function handleSaveQuestion(e) {
+            e.preventDefault();
+            const content = document.getElementById('qContent').value.trim();
+            const correct = document.getElementById('qCorrect').value;
+            
+            if (!content || !correct) { alert('Vui lòng nhập đầy đủ thông tin!'); return; }
+
+            const questionData = {
+                examId: 1, 
+                content: content,
+                optionA: document.getElementById('optA').value.trim(),
+                optionB: document.getElementById('optB').value.trim(),
+                optionC: document.getElementById('optC').value.trim(),
+                optionD: document.getElementById('optD').value.trim(),
+                correctAnswer: correct, 
+                explanation: document.getElementById('qExpl').value.trim(),
+                part: document.getElementById('qPart').value
+            };
+
+            try {
+                let url = 'http://localhost:8080/api/questions';
+                let method = 'POST';
+                if (editingQuestionId !== null) {
+                    url = `http://localhost:8080/api/questions/${editingQuestionId}`;
+                    method = 'PUT';
+                }
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(questionData)
+                });
+
+                if (response.ok) {
+                    alert(editingQuestionId !== null ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+                    bootstrap.Modal.getInstance(document.getElementById('questionModal')).hide();
+                    loadQuestions(); 
+                } else { alert('Có lỗi xảy ra khi lưu!'); }
+            } catch (error) { console.error('Lỗi API:', error); alert('Không thể kết nối đến Backend!'); }
+        }
+
+        async function deleteQuestion(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa câu hỏi này không?')) return;
+            try {
+                const response = await fetch(`http://localhost:8080/api/questions/${id}`, { method: 'DELETE' });
+                if (response.ok) { alert('Xóa thành công!'); loadQuestions(); }
+            } catch (error) { console.error(error); }
+        }
+
+        // Hàm xóa dòng HTML (Dùng cho bảng tĩnh Đề thi)
+        function deleteTableRow(btn) {
+            if (confirm('Bạn có chắc chắn muốn xóa?')) { btn.closest('tr').remove(); }
+        }
+    </script>
+</body>
+</html>

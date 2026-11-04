@@ -18,7 +18,3 @@ Hệ thống website hỗ trợ sinh viên ôn luyện và thi thử TOEIC trự
 - Quản trị viên (Admin): Email: admin@gmail.com | Mật khẩu: 123456
 - Sinh viên (Student): Email: student@gmail.com | Mật khẩu: 123456
 
-## 👥 Nhóm thực hiện
-- Nhóm trưởng: [Tên của bạn]
-- Thành viên: Khánh Huyên, Minh Công, Quyên Anh, Nguyễn Thị Gầm.
-- Môn học: Lập trình Web bằng Java (Bài kiểm tra 1).

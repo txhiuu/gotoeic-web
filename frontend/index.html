@@ -1417,8 +1417,61 @@
         }, 800);
     }
 
-    function openHistoryModal() {
+    // ================= LỊCH SỬ LÀM BÀI (GET /api/history) =================
+    // Mở bằng Live Server / file tĩnh thì gọi backend ở cổng 8080; mở qua backend thì dùng cùng origin
+    const HISTORY_API = (location.port === '8080' ? '' : 'http://localhost:8080') + '/api/history';
+
+    function escapeHtml(s) {
+        return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function formatThoiGian(iso) {
+        const d = new Date(iso);
+        if (isNaN(d)) return '';
+        const p = n => String(n).padStart(2, '0');
+        return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+
+    function setHistoryBody(html) {
+        document.getElementById('historyTableBody').innerHTML = html;
+    }
+
+    async function openHistoryModal() {
         new bootstrap.Modal(document.getElementById('historyModal')).show();
+
+        if (!currentUser || !currentUser.id) {
+            setHistoryBody('<tr><td colspan="5" class="text-center text-muted py-4">Vui lòng đăng nhập để xem lịch sử làm bài.</td></tr>');
+            return;
+        }
+
+        setHistoryBody('<tr><td colspan="5" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Đang tải lịch sử...</td></tr>');
+
+        try {
+            const resp = await fetch(`${HISTORY_API}?userId=${encodeURIComponent(currentUser.id)}`);
+            const data = await resp.json();
+            if (!resp.ok || !data.success) throw new Error(data.message || 'Lỗi tải lịch sử');
+
+            if (data.history.length === 0) {
+                setHistoryBody('<tr><td colspan="5" class="text-center text-muted py-4">Bạn chưa làm bài thi nào. Hãy thử sức với một đề nhé!</td></tr>');
+                return;
+            }
+
+            setHistoryBody(data.history.map(h => {
+                const toeic = Math.min(990, Math.round(h.totalCorrect * 85 + 100)); // cùng công thức với NopBaiService
+                const title = escapeHtml(h.examTitle);
+                return `
+                <tr>
+                    <td><span class="small text-muted">${formatThoiGian(h.submittedAt)}</span></td>
+                    <td><span class="fw-semibold">${title}</span></td>
+                    <td><span class="badge bg-primary-subtle text-primary">${h.totalCorrect} / ${h.totalQuestions} câu</span></td>
+                    <td><span class="badge bg-success-subtle text-success fs-6">${Number(h.score).toFixed(1)} / 10 (${toeic} TOEIC)</span></td>
+                    <td><button class="btn btn-line btn-sm" data-title="${title}"
+                        onclick="bootstrap.Modal.getInstance(document.getElementById('historyModal')).hide(); startExam(this.dataset.title, 120)">Làm lại</button></td>
+                </tr>`;
+            }).join(''));
+        } catch (err) {
+            setHistoryBody('<tr><td colspan="5" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle me-1"></i>Không tải được lịch sử làm bài. Hãy kiểm tra backend đã chạy chưa.</td></tr>');
+        }
     }
 
     function openProgressModal() {

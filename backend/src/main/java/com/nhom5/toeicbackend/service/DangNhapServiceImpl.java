@@ -49,7 +49,7 @@ public class DangNhapServiceImpl implements DangNhapService {
             }
 
             // Bước 6: Kiểm tra mật khẩu
-            if (user.getPassword().equals(matKhau) || matKhau.equals("123456")) {
+            if (user.getPassword().equals(matKhau)) {
                 // Bước 7: return thông tin người dùng, vai trò
                 resp.put("success", true);
                 resp.put("message", "Đăng nhập thành công!");

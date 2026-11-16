@@ -8,12 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collections;
 import java.util.Map;
 
-/**
- * Controller đại diện cho Use Case Nộp bài
- * Khớp 100% với tên gọi "NopBaiController" trên Sequence Diagram 2
- */
 @RestController
-@RequestMapping({"/api/nopbai", "/api/nop-bai"})
+@RequestMapping("/api/exam") 
 @CrossOrigin(origins = "*")
 public class NopBaiController {
 
@@ -26,28 +22,29 @@ public class NopBaiController {
         this.nopBaiService = nopBaiService;
     }
 
-    /**
-     * Bước 2 trên Sequence Diagram 2: layThongTinNopBai(maBaiLam)
-     */
-    @GetMapping("/layThongTinNopBai/{maBaiLam}")
-    public ResponseEntity<?> layThongTinNopBai(@PathVariable("maBaiLam") int maBaiLam) {
-        Map<String, Object> data = nopBaiService.layThongTinNopBai(maBaiLam);
+    @GetMapping("/info/{examId}")
+    public ResponseEntity<?> layThongTinNopBai(@PathVariable("examId") int examId) {
+        Map<String, Object> data = nopBaiService.layThongTinNopBai(examId);
         return ResponseEntity.ok(data);
     }
 
-    /**
-     * Bước 8 trên Sequence Diagram 2: nopBai(maBaiLam, dsDapAnDaChon)
-     */
-    @PostMapping("/nopBai")
+    @PostMapping("/submit") // SỬA LẠI URL THÀNH /submit
     public ResponseEntity<?> nopBai(@RequestBody Map<String, Object> payload) {
-        int maBaiLam = (Integer) payload.getOrDefault("maBaiLam", 1);
-        int userId = (Integer) payload.getOrDefault("userId", 2);
+        try {
+            // SỬA KEY LẤY DỮ LIỆU CHO KHỚP VỚI FRONTEND GỬI LÊN
+            int examId = (Integer) payload.getOrDefault("examId", 1);
+            int userId = (Integer) payload.getOrDefault("userId", 2);
 
-        @SuppressWarnings("unchecked")
-        Map<String, String> dsDapAnDaChon = (Map<String, String>) payload.getOrDefault("dsDapAnDaChon", Collections.emptyMap());
+            @SuppressWarnings("unchecked")
+            Map<String, String> answers = (Map<String, String>) payload.getOrDefault("answers", Collections.emptyMap());
 
-        Map<String, Object> result = nopBaiService.nopBai(maBaiLam, userId, dsDapAnDaChon);
-        return ResponseEntity.ok(result);
+            // Gọi Service
+            Map<String, Object> result = nopBaiService.nopBai(examId, userId, answers);
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Lỗi server: " + e.getMessage()));
+        }
     }
 }
-

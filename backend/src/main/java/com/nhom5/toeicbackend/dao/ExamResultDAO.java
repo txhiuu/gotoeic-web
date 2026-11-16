@@ -7,7 +7,9 @@ import java.util.Optional;
 public interface ExamResultDAO {
     Optional<ExamResult> findById(int id);
     List<ExamResult> findByUserId(int userId);
-    int save(ExamResult res);
     int update(ExamResult res);
+    
+    // 2 HÀM MỚI CẦN THÊM:
+    int saveAndGetId(ExamResult res);
+    void saveExamResultDetail(int resultId, int questionId, String selectedAnswer, boolean isCorrect);
 }
-

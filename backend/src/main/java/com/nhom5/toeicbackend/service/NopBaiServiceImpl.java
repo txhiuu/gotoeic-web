@@ -8,13 +8,10 @@ import com.nhom5.toeicbackend.model.ExamResult;
 import com.nhom5.toeicbackend.model.Question;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-/**
- * Cài đặt tầng nghiệp vụ (Service Implementation) cho Use Case Nộp bài
- * Khớp với Sequence Diagram 2: NopBaiController -> CAUHOI, BAILAM, CHITIETBAILAM, DAPAN
- */
 @Service
 public class NopBaiServiceImpl implements NopBaiService {
 
@@ -27,7 +24,8 @@ public class NopBaiServiceImpl implements NopBaiService {
     @Autowired
     private ExamResultDAO examResultDAO;
 
-    public NopBaiServiceImpl() {}
+    public NopBaiServiceImpl() {
+    }
 
     public NopBaiServiceImpl(ExamDAO examDAO, QuestionDAO questionDAO, ExamResultDAO examResultDAO) {
         this.examDAO = examDAO;
@@ -35,13 +33,12 @@ public class NopBaiServiceImpl implements NopBaiService {
         this.examResultDAO = examResultDAO;
     }
 
+    // 1. HÀM LẤY THÔNG TIN BÀI LÀM (Em bị thiếu hàm này nên gây lỗi)
     @Override
     public Map<String, Object> layThongTinNopBai(int maBaiLam) {
-        // Bước 3-4: getCAUHOI(), getBAILAM()
         Optional<Exam> examOpt = examDAO.findById(maBaiLam);
         List<Question> questions = questionDAO.getCAUHOI(maBaiLam);
 
-        // Bước 5: return danh sách câu hỏi, thời gian còn lại
         Map<String, Object> data = new HashMap<>();
         data.put("examId", maBaiLam);
         data.put("title", examOpt.map(Exam::getTitle).orElse("Đề thi thử TOEIC Full Test 01"));
@@ -52,18 +49,18 @@ public class NopBaiServiceImpl implements NopBaiService {
         return data;
     }
 
+    // 2. HÀM XỬ LÝ NỘP BÀI VÀ CHẤM ĐIỂM
     @Override
+    @Transactional
     public Map<String, Object> nopBai(int maBaiLam, int userId, Map<String, String> dsDapAnDaChon) {
         if (dsDapAnDaChon == null) {
             dsDapAnDaChon = Collections.emptyMap();
         }
 
-        // Bước 9-10: getCAUHOI / getDAPAN()
         List<Question> questions = questionDAO.getCAUHOI(maBaiLam);
         int totalQuestions = questions.isEmpty() ? 10 : questions.size();
         int totalCorrect = 0;
 
-        // Bước 11: Chấm bài()
         for (Question q : questions) {
             String selected = dsDapAnDaChon.get(String.valueOf(q.getId()));
             if (selected != null && selected.trim().equalsIgnoreCase(q.getCorrectAnswer().trim())) {
@@ -71,21 +68,35 @@ public class NopBaiServiceImpl implements NopBaiService {
             }
         }
 
-        // Thang điểm 10 và quy đổi TOEIC 990
-        double score = totalQuestions > 0 ? Math.round(((double) totalCorrect / totalQuestions * 10) * 10.0) / 10.0 : 0.0;
-        int scoreToeic = (int) Math.round(totalCorrect * 85.0 + 100);
-        if (scoreToeic > 990) scoreToeic = 990;
+        double score = totalQuestions > 0 ? Math.round(((double) totalCorrect / totalQuestions * 10) * 10.0) / 10.0
+                : 0.0;
+        int scoreToeic = 0;
+        if (totalQuestions > 0) {
+            double ratio = (double) totalCorrect / totalQuestions;
+            scoreToeic = (int) Math.round(ratio * 990);
+        }
+        if (scoreToeic > 990)
+            scoreToeic = 990;
 
-        // Bước 12: updateBAILAM() (Lưu kết quả vào exam_results)
         ExamResult result = new ExamResult();
         result.setUserId(userId > 0 ? userId : 2);
         result.setExamId(maBaiLam);
         result.setScore(score);
         result.setTotalCorrect(totalCorrect);
         result.setTotalQuestions(totalQuestions);
-        examResultDAO.save(result);
 
-        // Bước 13: return kết quả làm bài
+        // Lưu kết quả và lấy ID (Dùng hàm saveAndGetId đã sửa ở bài trước)
+        int resultId = examResultDAO.saveAndGetId(result);
+
+        // Lưu chi tiết vào bảng thứ 5
+        if (resultId != -1) {
+            for (Question q : questions) {
+                String selected = dsDapAnDaChon.getOrDefault(String.valueOf(q.getId()), "");
+                boolean isCorrect = selected.trim().equalsIgnoreCase(q.getCorrectAnswer().trim());
+                examResultDAO.saveExamResultDetail(resultId, q.getId(), selected, isCorrect);
+            }
+        }
+
         Map<String, Object> res = new HashMap<>();
         res.put("success", true);
         res.put("score", score);
@@ -97,4 +108,3 @@ public class NopBaiServiceImpl implements NopBaiService {
         return res;
     }
 }
-

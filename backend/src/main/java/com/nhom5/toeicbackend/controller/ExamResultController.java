@@ -117,7 +117,7 @@ public class ExamResultController {
         r.setTotalQuestions(totalQuestions);
         r.setScore(score);
 
-        if (examResultDAO.save(r) <= 0) {
+        if (examResultDAO.saveAndGetId(r) <= 0) {
             return loi(HttpStatus.INTERNAL_SERVER_ERROR, "Lưu lịch sử làm bài thất bại!");
         }
 

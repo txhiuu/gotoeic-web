@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/exam") 
+@RequestMapping("/api/exam")
 @CrossOrigin(origins = "*")
 public class NopBaiController {
 
@@ -28,20 +28,22 @@ public class NopBaiController {
         return ResponseEntity.ok(data);
     }
 
-    @PostMapping("/submit") // SỬA LẠI URL THÀNH /submit
+    @PostMapping("/submit")
     public ResponseEntity<?> nopBai(@RequestBody Map<String, Object> payload) {
         try {
-            // SỬA KEY LẤY DỮ LIỆU CHO KHỚP VỚI FRONTEND GỬI LÊN
-            int examId = (Integer) payload.getOrDefault("examId", 1);
+            // Đọc được cả 2 key: examId / maBaiLam
+            Object examIdObj = payload.get("examId") != null ? payload.get("examId") : payload.get("maBaiLam");
+            int examId = examIdObj != null ? (Integer) examIdObj : 1;
+            
             int userId = (Integer) payload.getOrDefault("userId", 2);
 
+            // Đọc được cả 2 key: answers / dsDapAnDaChon
+            Object answersObj = payload.get("answers") != null ? payload.get("answers") : payload.get("dsDapAnDaChon");
             @SuppressWarnings("unchecked")
-            Map<String, String> answers = (Map<String, String>) payload.getOrDefault("answers", Collections.emptyMap());
+            Map<String, String> answers = answersObj != null ? (Map<String, String>) answersObj : Collections.emptyMap();
 
-            // Gọi Service
             Map<String, Object> result = nopBaiService.nopBai(examId, userId, answers);
             return ResponseEntity.ok(result);
-            
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", "Lỗi server: " + e.getMessage()));

@@ -1,7 +1,8 @@
--- Schema test (dua tren gotoeic.sql cua nhom, chuyen sang cu phap H2/PostgreSQL)
+-- Xóa bảng theo đúng thứ tự từ con đến cha để tránh lỗi khóa ngoại
+DROP TABLE IF EXISTS exam_result_details;
 DROP TABLE IF EXISTS exam_results;
-DROP TABLE IF EXISTS questions;
 DROP TABLE IF EXISTS user_exam;
+DROP TABLE IF EXISTS questions;
 DROP TABLE IF EXISTS exams;
 DROP TABLE IF EXISTS users;
 
@@ -50,4 +51,12 @@ CREATE TABLE exam_results (
     total_correct INT NOT NULL,
     total_questions INT NOT NULL,
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE exam_result_details (
+    id SERIAL PRIMARY KEY,
+    result_id INT NOT NULL REFERENCES exam_results(id) ON DELETE CASCADE,
+    question_id INT NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    selected_answer CHAR(1),
+    is_correct BOOLEAN
 );

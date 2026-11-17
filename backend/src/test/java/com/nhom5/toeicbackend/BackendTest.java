@@ -28,6 +28,29 @@ class BackendTest {
     private MockMvc mockMvc;
 
     @Test
+    @DisplayName("GET /api/exams trả về danh sách đề thi")
+    void testLayDanhSachDeThi() throws Exception {
+        mockMvc.perform(get("/api/exams"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].title").value("De thi thu TOEIC Full Test 01"));
+    }
+
+    @Test
+    @DisplayName("GET /api/exams/{id} trả về thông tin đề thi kèm mảng câu hỏi")
+    void testLayChiTietDeThiKemCauHoi() throws Exception {
+        mockMvc.perform(get("/api/exams/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.questions.length()").value(2))
+                .andExpect(jsonPath("$.questions[0].content").isNotEmpty());
+
+        mockMvc.perform(get("/api/exams/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
     @DisplayName("TC_BE_01: GET /api/exam/info/1 trả về đúng thông tin đề thi và danh sách câu hỏi")
     void testLayThongTinDeThi() throws Exception {
         mockMvc.perform(get("/api/exam/info/1"))

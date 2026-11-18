@@ -33,7 +33,7 @@
     </style>
 </head>
 
-<body onload="loadQuestions()">
+<body onload="loadQuestions(); loadExams();">
 
     <div class="admin-layout">
         <!-- SIDEBAR -->
@@ -75,7 +75,7 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Tổng tài khoản (users)</div><div class="fs-3 fw-bold text-primary mt-1">2</div><div class="small text-muted mt-1">1 Admin, 1 Sinh viên</div></div></div>
                         <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Ngân hàng câu hỏi</div><div class="fs-3 fw-bold text-success mt-1" id="dashTotalQuestions">...</div><div class="small text-muted mt-1">Trong CSDL</div></div></div>
-                        <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Đề thi (exams)</div><div class="fs-3 fw-bold text-dark mt-1">1</div><div class="small text-muted mt-1">Đề thi TOEIC Full Test 01</div></div></div>
+                        <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Đề thi (exams)</div><div class="fs-3 fw-bold text-dark mt-1" id="dashTotalExams">...</div><div class="small text-muted mt-1" id="dashExamNote">Đang tải...</div></div></div>
                         <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Điểm trung bình</div><div class="fs-3 fw-bold text-info mt-1">5.0 / 10</div><div class="small text-success mt-1">Từ bảng exam_results</div></div></div>
                     </div>
                     <div class="row g-4">
@@ -130,25 +130,25 @@
                     </div>
                 </div>
 
-                <!-- 3. TAB QUẢN LÝ ĐỀ THI -->
+                                <!-- 3. TAB QUẢN LÝ ĐỀ THI -->
                 <div id="viewExam" class="d-none">
                     <div class="clean-card p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                             <h6 class="fw-bold mb-0">Danh sách Đề thi thử TOEIC</h6>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createExamModal"><i class="bi bi-plus-circle me-1"></i>Tạo đề thi</button>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="loadExams()"><i class="bi bi-arrow-clockwise me-1"></i>Tải lại</button>
+                                <button class="btn btn-sm btn-primary" onclick="openCreateExam()"><i class="bi bi-plus-circle me-1"></i>Tạo đề thi</button>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="table align-middle table-hover mb-0">
-                                <thead class="table-light small"><tr><th>Mã đề</th><th>Tên đề thi</th><th>Kỹ năng</th><th>Thời gian</th><th>Số câu</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead>
-                                <tbody>
-                                    <tr>
-                                        <td><code>ID 1</code></td><td class="fw-semibold">Đề thi TOEIC Full Test 01</td><td>Nghe &amp; Đọc</td><td>120 phút</td><td>200 câu</td>
-                                        <td><span class="badge bg-success-subtle text-success">Công khai</span></td>
-                                        <td class="text-end"><button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteTableRow(this)"><i class="bi bi-trash"></i></button></td>
-                                    </tr>
+                                <thead class="table-light small"><tr><th>Mã đề</th><th>Tên đề thi</th><th>Mô tả</th><th>Thời gian</th><th>Ngày tạo</th><th class="text-end">Thao tác</th></tr></thead>
+                                <tbody id="examTableBody">
+                                    <tr><td colspan="6" class="text-center text-muted py-4">Đang tải danh sách đề thi...</td></tr>
                                 </tbody>
                             </table>
                         </div>
+                        <div class="small text-muted mt-2">Đề có nhãn <span class="badge bg-warning text-dark">Chưa lưu</span> mới thay đổi trên giao diện, chưa ghi vào CSDL.</div>
                     </div>
                 </div>
 
@@ -261,7 +261,77 @@
     </div>
 
     <!-- CÁC MODAL PHỤ (Đề thi, Chủ đề, Tài khoản) -->
-    <div class="modal fade" id="createExamModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content p-4 text-center">Tính năng Tạo đề thi đang phát triển...</div></div></div>
+        <!-- Form THÊM / SỬA đề thi (dùng chung) -->
+    <div class="modal fade" id="examModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold" id="examModalTitle"><i class="bi bi-journal-plus text-primary me-2"></i>Tạo Đề thi thử</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="examForm" novalidate onsubmit="handleSaveExam(event)">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" for="examTitle">Tên đề thi *</label>
+                            <input type="text" id="examTitle" class="form-control" maxlength="255" required placeholder="VD: Đề thi thử TOEIC Full Test 02" />
+                            <div class="invalid-feedback">Tên đề thi không được để trống.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" for="examDesc">Mô tả</label>
+                            <textarea id="examDesc" class="form-control" rows="2" maxlength="255" placeholder="VD: Đề thi thử sát với đề thi thật, gồm 200 câu."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" for="examDuration">Thời gian làm bài (phút) *</label>
+                            <input type="number" id="examDuration" class="form-control" min="1" max="300" value="120" required />
+                            <div class="invalid-feedback">Thời gian phải từ 1 đến 300 phút.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2" id="btnSaveExam">Tạo đề thi</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form xác nhận XÓA đề thi -->
+    <div class="modal fade" id="examDeleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Xóa đề thi</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="mb-2">Bạn chắc chắn muốn xóa đề <b id="deleteExamName"></b> (<code id="deleteExamId"></code>)?</p>
+                    <div class="alert alert-warning small py-2 mb-0">
+                        Đề thi sẽ bị xóa khỏi danh sách.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteExam()">Xóa đề thi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- XEM CHI TIẾT đề thi kèm mảng câu hỏi (GET /api/exams/{id}) -->
+    <div class="modal fade" id="examDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <div>
+                        <h6 class="modal-title fw-bold mb-1" id="detailTitle">Chi tiết đề thi</h6>
+                        <div class="small text-muted" id="detailMeta"></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-secondary mb-3" id="detailDesc"></p>
+                    <div id="detailQuestions"></div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="topicModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content p-4 text-center">Tính năng Thêm chủ đề đang phát triển...</div></div></div>
     <div class="modal fade" id="userModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content p-4 text-center">Tính năng Thêm user đang phát triển...</div></div></div>
 
@@ -293,6 +363,7 @@
             document.getElementById('adminHeaderSub').textContent = info.sub;
             
             if(tabKey === 'quest') loadQuestions();
+             if(tabKey === 'exam') loadExams();
         }
 
         function filterQuestionsTable() {
@@ -415,6 +486,205 @@
                 const response = await fetch(`http://localhost:8080/api/questions/${id}`, { method: 'DELETE' });
                 if (response.ok) { alert('Xóa thành công!'); loadQuestions(); }
             } catch (error) { console.error(error); }
+        }
+        //  QUẢN LÝ ĐỀ THI 
+        const EXAM_API = 'http://localhost:8080/api/exams';
+        let allExams = [];          
+        let editingExamId = null;   
+        let deletingExamId = null;
+        let nextLocalId = 1;       
+
+        // Chống XSS: escape dữ liệu trước khi chèn vào HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? '' : String(text);
+            return div.innerHTML;
+        }
+
+        function formatDate(value) {
+            if (!value) return '—';
+            const d = new Date(value);
+            return isNaN(d) ? escapeHtml(value) : d.toLocaleDateString('vi-VN');
+        }
+
+        // ---------- API 1: GET /api/exams ----------
+        async function loadExams() {
+            const tbody = document.getElementById('examTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Đang tải danh sách đề thi...</td></tr>';
+            try {
+                const response = await fetch(EXAM_API);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const exams = await response.json();
+                allExams = exams.map(e => ({ ...e, status: null }));   
+                renderExamTable();
+            } catch (error) {
+                console.error('Lỗi tải đề thi:', error);
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Không tải được danh sách đề thi. Kiểm tra Backend đã chạy chưa.</td></tr>';
+                document.getElementById('dashTotalExams').textContent = '?';
+            }
+        }
+
+        // Vẽ bảng từ allExams
+        function renderExamTable() {
+            const tbody = document.getElementById('examTableBody');
+            document.getElementById('dashTotalExams').textContent = allExams.length;
+            document.getElementById('dashExamNote').textContent = allExams.length ? allExams[0].title : 'Chưa có đề thi';
+
+            if (allExams.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Chưa có đề thi nào. Bấm "Tạo đề thi" để thêm.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = allExams.map(e => {
+                const badge = e.status ? ' <span class="badge bg-warning text-dark ms-1">Chưa lưu</span>' : '';
+                const idText = typeof e.id === 'number' ? 'ID ' + e.id : e.id;
+                return `
+                    <tr>
+                        <td><code>${escapeHtml(idText)}</code></td>
+                        <td class="fw-semibold">${escapeHtml(e.title)}${badge}</td>
+                        <td class="small text-muted">${escapeHtml(e.description || '—')}</td>
+                        <td>${e.durationMinutes} phút</td>
+                        <td class="small">${formatDate(e.createdAt)}</td>
+                        <td class="text-end text-nowrap">
+                            <button class="btn btn-sm btn-outline-primary py-1 px-2" title="Xem chi tiết" onclick="viewExam('${e.id}')"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary py-1 px-2" title="Sửa" onclick="editExam('${e.id}')"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger py-1 px-2" title="Xóa" onclick="deleteExam('${e.id}')"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>`;
+            }).join('');
+        }
+
+        // Tìm đề trong danh sách 
+        function findExam(id) {
+            return allExams.find(e => String(e.id) === String(id));
+        }
+
+        // Đề đã có trong CSDL thì có id dạng số -> mới gọi được API chi tiết
+        function isServerExam(exam) {
+            return typeof exam.id === 'number';
+        }
+
+        // ---------- API 2: GET /api/exams/{id} - xem chi tiết kèm mảng câu hỏi ----------
+        async function viewExam(id) {
+            const exam = findExam(id);
+            if (!exam) return;
+            const box = document.getElementById('detailQuestions');
+            document.getElementById('detailTitle').textContent = exam.title;
+            document.getElementById('detailMeta').textContent = exam.durationMinutes + ' phút';
+            document.getElementById('detailDesc').textContent = exam.description || '';
+            box.innerHTML = '<div class="text-muted small">Đang tải câu hỏi...</div>';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('examDetailModal')).show();
+
+            if (!isServerExam(exam)) {
+                box.innerHTML = '<div class="text-muted small">Đề mới tạo trên giao diện, chưa có câu hỏi.</div>';
+                return;
+            }
+            try {
+                const response = await fetch(`${EXAM_API}/${exam.id}`);
+                if (response.status === 404) { box.innerHTML = '<div class="text-danger small">Không tìm thấy đề thi trong CSDL.</div>'; return; }
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const detail = await response.json();
+                const questions = detail.questions || [];
+                document.getElementById('detailMeta').textContent = detail.durationMinutes + ' phút · ' + questions.length + ' câu hỏi';
+
+                if (questions.length === 0) { box.innerHTML = '<div class="text-muted small">Đề thi chưa có câu hỏi.</div>'; return; }
+                box.innerHTML = questions.map((q, i) => {
+                    const opt = (key, text) => `<li class="${q.correctAnswer === key ? 'text-success fw-semibold' : ''}">${key}. ${escapeHtml(text)}${q.correctAnswer === key ? ' <i class="bi bi-check-circle-fill"></i>' : ''}</li>`;
+                    return `
+                        <div class="border rounded-3 p-3 mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-semibold">Câu ${i + 1}</span>
+                                <span class="badge bg-light text-dark border">${escapeHtml(q.part || '')}</span>
+                            </div>
+                            <p class="mb-2">${escapeHtml(q.content)}</p>
+                            <ul class="list-unstyled small mb-2">
+                                ${opt('A', q.optionA)}${opt('B', q.optionB)}${opt('C', q.optionC)}${opt('D', q.optionD)}
+                            </ul>
+                            ${q.explanation ? `<div class="small text-muted"><i class="bi bi-lightbulb me-1"></i>${escapeHtml(q.explanation)}</div>` : ''}
+                        </div>`;
+                }).join('');
+            } catch (error) {
+                console.error(error);
+                box.innerHTML = '<div class="text-danger small">Không thể kết nối đến Backend!</div>';
+            }
+        }
+
+        // ---------- Form THÊM ----------
+        function resetExamForm() {
+            const form = document.getElementById('examForm');
+            form.reset();
+            form.classList.remove('was-validated');
+        }
+
+        function openCreateExam() {
+            editingExamId = null;
+            resetExamForm();
+            document.getElementById('examModalTitle').innerHTML = '<i class="bi bi-journal-plus text-primary me-2"></i>Tạo Đề thi thử';
+            document.getElementById('btnSaveExam').innerText = 'Tạo đề thi';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('examModal')).show();
+        }
+
+        // Form SỬA
+        async function editExam(id) {
+            const exam = findExam(id);
+            if (!exam) return;
+            let data = exam;
+            if (isServerExam(exam) && !exam.status) {
+                try {
+                    const response = await fetch(`${EXAM_API}/${exam.id}`);
+                    if (response.ok) data = await response.json();
+                } catch (error) { console.error(error); }
+            }
+            editingExamId = exam.id;
+            resetExamForm();
+            document.getElementById('examTitle').value = data.title || '';
+            document.getElementById('examDesc').value = data.description || '';
+            document.getElementById('examDuration').value = data.durationMinutes;
+            document.getElementById('examModalTitle').innerHTML = '<i class="bi bi-pencil-square text-warning me-2"></i>Cập nhật Đề thi (' + escapeHtml(typeof exam.id === 'number' ? 'ID ' + exam.id : exam.id) + ')';
+            document.getElementById('btnSaveExam').innerText = 'Cập nhật thay đổi';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('examModal')).show();
+        }
+
+        // ---------- Lưu form THÊM / SỬA ----------
+        function handleSaveExam(e) {
+            e.preventDefault();
+            const form = document.getElementById('examForm');
+            const titleInput = document.getElementById('examTitle');
+            titleInput.value = titleInput.value.trim();
+            form.classList.add('was-validated');
+            if (!form.checkValidity()) return;   
+
+            const examData = {
+                title: titleInput.value,
+                description: document.getElementById('examDesc').value.trim(),
+                durationMinutes: parseInt(document.getElementById('examDuration').value, 10)
+            };
+
+            if (editingExamId === null) {
+                allExams.push({ id: 'M' + (nextLocalId++), ...examData, createdAt: new Date().toISOString(), status: 'new' });
+            } else {
+                const exam = findExam(editingExamId);
+                Object.assign(exam, examData);
+                if (exam.status !== 'new') exam.status = 'edited';
+            }
+            bootstrap.Modal.getInstance(document.getElementById('examModal')).hide();
+            renderExamTable();
+        }
+
+        // ---------- Form XÓA ----------
+        function deleteExam(id) {
+            const exam = findExam(id);
+            if (!exam) return;
+            deletingExamId = exam.id;
+            document.getElementById('deleteExamName').textContent = exam.title;
+            document.getElementById('deleteExamId').textContent = typeof exam.id === 'number' ? 'ID ' + exam.id : exam.id;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('examDeleteModal')).show();
+        }
+
+        function confirmDeleteExam() {
+            allExams = allExams.filter(e => String(e.id) !== String(deletingExamId));
+            deletingExamId = null;
+            bootstrap.Modal.getInstance(document.getElementById('examDeleteModal')).hide();
+            renderExamTable();
         }
 
         // Hàm xóa dòng HTML (Dùng cho bảng tĩnh Đề thi)

@@ -1,5 +1,7 @@
 package com.nhom5.toeicbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.sql.Timestamp;
 
 public class User {
@@ -28,6 +30,7 @@ public class User {
     public void setId(int id) { this.id = id; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+    @JsonIgnore
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
     public String getFullName() { return fullName; }

@@ -18,3 +18,6 @@ Hệ thống website hỗ trợ sinh viên ôn luyện và thi thử TOEIC trự
 - Quản trị viên (Admin): Email: admin@gmail.com | Mật khẩu: 123456
 - Sinh viên (Student): Email: student@gmail.com | Mật khẩu: 123456
 
+## 🔐 Bảo mật mật khẩu
+Mật khẩu tài khoản mới được lưu bằng BCrypt. Với tài khoản đang có mật khẩu plaintext trong cơ sở dữ liệu, mật khẩu sẽ được chuyển sang BCrypt sau lần đăng nhập hợp lệ đầu tiên.
+

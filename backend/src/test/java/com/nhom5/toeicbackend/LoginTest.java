@@ -36,7 +36,8 @@ class LoginTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.role").value("STUDENT"))
-                .andExpect(jsonPath("$.user.email").value("student@gmail.com"));
+                .andExpect(jsonPath("$.user.email").value("student@gmail.com"))
+                .andExpect(jsonPath("$.user.password").doesNotExist());
     }
 
     @Test

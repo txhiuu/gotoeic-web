@@ -4,6 +4,7 @@ import com.nhom5.toeicbackend.dao.QuestionDAO;
 import com.nhom5.toeicbackend.dao.UserDAO;
 import com.nhom5.toeicbackend.controller.AuthController;
 import com.nhom5.toeicbackend.controller.NopBaiController; // Sửa thành NopBaiController
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ class ToeicBackendApplicationTests {
 
     @Autowired
     private UserDAO userDAO;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private QuestionDAO questionDAO;
@@ -57,6 +61,10 @@ class ToeicBackendApplicationTests {
         ResponseEntity<?> resp = authController.register(regReq);
         assertEquals(200, resp.getStatusCode().value());
         assertTrue(userDAO.checkLogin(testEmail, "123456"));
+        String storedPassword = jdbcTemplate.queryForObject(
+                "SELECT password FROM users WHERE email = ?", String.class, testEmail);
+        assertNotEquals("123456", storedPassword);
+        assertTrue(storedPassword.matches("^\\$2[aby]\\$\\d{2}\\$[./A-Za-z0-9]{53}$"));
     }
 
     @Test

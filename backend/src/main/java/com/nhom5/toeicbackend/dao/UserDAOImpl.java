@@ -1,6 +1,7 @@
 package com.nhom5.toeicbackend.dao;
 
 import com.nhom5.toeicbackend.model.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,12 +10,18 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Repository
 public class UserDAOImpl implements UserDAO {
 
+    private static final Pattern BCRYPT_HASH_PATTERN =
+            Pattern.compile("^\\$2[aby]\\$\\d{2}\\$[./A-Za-z0-9]{53}$");
+
     @Autowired
     private JdbcTemplate jdbcTemplate; // Bắt buộc phải có JdbcTemplate, không dùng required=false
+
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private final RowMapper<User> userRowMapper = (rs, rowNum) -> new User(
             rs.getInt("id"),
@@ -27,9 +34,25 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public boolean checkLogin(String email, String password) {
-        String sql = "SELECT COUNT(*) FROM users WHERE email = ? AND password = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, email, password);
-        return count != null && count > 0;
+        String sql = "SELECT password FROM users WHERE email = ?";
+        String storedPassword;
+        try {
+            storedPassword = jdbcTemplate.queryForObject(sql, String.class, email);
+        } catch (EmptyResultDataAccessException e) {
+            return false;
+        }
+
+        if (storedPassword.startsWith("$2")) {
+            return BCRYPT_HASH_PATTERN.matcher(storedPassword).matches()
+                    && passwordEncoder.matches(password, storedPassword);
+        }
+
+        if (!storedPassword.equals(password)) {
+            return false;
+        }
+
+        String updateSql = "UPDATE users SET password = ? WHERE email = ? AND password = ?";
+        return jdbcTemplate.update(updateSql, passwordEncoder.encode(password), email, storedPassword) > 0;
     }
 
     @Override
@@ -44,7 +67,7 @@ public class UserDAOImpl implements UserDAO {
 
         // 2. Insert vào DB (Bổ sung is_active và created_at để tránh lỗi NOT NULL)
         String insertSql = "INSERT INTO users (email, password, full_name, role, is_active, created_at) VALUES (?, ?, ?, 'STUDENT', true, CURRENT_TIMESTAMP)";
-        int rowsAffected = jdbcTemplate.update(insertSql, email, password, fullName);
+        int rowsAffected = jdbcTemplate.update(insertSql, email, passwordEncoder.encode(password), fullName);
         return rowsAffected > 0;
     }
 
@@ -79,7 +102,7 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public int save(User user) {
         String sql = "INSERT INTO users (email, password, full_name, role, is_active, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
-        return jdbcTemplate.update(sql, user.getEmail(), user.getPassword(), user.getFullName(), user.getRole(), user.getIsActive());
+        return jdbcTemplate.update(sql, user.getEmail(), passwordEncoder.encode(user.getPassword()), user.getFullName(), user.getRole(), user.getIsActive());
     }
 
     @Override

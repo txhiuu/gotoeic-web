@@ -37,6 +37,29 @@ class BackendTest {
     }
 
     @Test
+    @DisplayName("GET /api/exams hỗ trợ tìm kiếm và phân trang")
+    void testTimKiemVaPhanTrangDeThi() throws Exception {
+        mockMvc.perform(get("/api/exams")
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("search", "toeic"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(1));
+
+        mockMvc.perform(get("/api/exams").param("search", "khong co"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        mockMvc.perform(get("/api/exams").param("page", "2").param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        mockMvc.perform(get("/api/exams").param("page", "0").param("size", "5"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("GET /api/exams/{id} trả về thông tin đề thi kèm mảng câu hỏi")
     void testLayChiTietDeThiKemCauHoi() throws Exception {
         mockMvc.perform(get("/api/exams/1"))

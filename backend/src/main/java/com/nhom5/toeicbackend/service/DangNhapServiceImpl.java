@@ -48,8 +48,8 @@ public class DangNhapServiceImpl implements DangNhapService {
                 return resp;
             }
 
-            // Bước 6: Kiểm tra mật khẩu
-            if (user.getPassword().equals(matKhau)) {
+            // Bước 6: Kiểm tra mật khẩu đã mã hóa trong DAO
+            if (userDAO.checkLogin(email.trim(), matKhau)) {
                 // Bước 7: return thông tin người dùng, vai trò
                 resp.put("success", true);
                 resp.put("message", "Đăng nhập thành công!");
@@ -77,7 +77,8 @@ public class DangNhapServiceImpl implements DangNhapService {
     public Map<String, Object> dangKy(String email, String matKhau, String fullName) {
         Map<String, Object> resp = new HashMap<>();
 
-        if (email == null || matKhau == null || fullName == null || email.trim().isEmpty()) {
+        if (email == null || matKhau == null || fullName == null
+                || email.trim().isEmpty() || matKhau.trim().isEmpty() || fullName.trim().isEmpty()) {
             resp.put("success", false);
             resp.put("message", "Vui lòng điền đầy đủ thông tin!");
             return resp;

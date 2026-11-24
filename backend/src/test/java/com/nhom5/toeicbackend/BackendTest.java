@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * 2 Test Case JUnit cho API Đề thi / Nộp bài.
+ * Kiểm thử API Đề thi, phân trang và nộp bài.
  * Dữ liệu mẫu (src/test/resources/data.sql): đề 1 có 2 câu, đáp án đúng đều là "A";
  * học viên student@gmail.com có id = 2.
  */
@@ -26,6 +27,9 @@ class BackendTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     @DisplayName("GET /api/exams trả về danh sách đề thi")
@@ -57,6 +61,41 @@ class BackendTest {
 
         mockMvc.perform(get("/api/exams").param("page", "0").param("size", "5"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("TC_BE_03: GET /api/exams trả đúng số đề ở trang đầu")
+    void testPhanTrangDeThiTrangDau() throws Exception {
+        String prefix = taoDuLieuDeThiPhanTrang();
+        try {
+            mockMvc.perform(get("/api/exams")
+                            .param("page", "1")
+                            .param("size", "2")
+                            .param("search", prefix))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(2))
+                    .andExpect(jsonPath("$[0].title").value(prefix + " 1"))
+                    .andExpect(jsonPath("$[1].title").value(prefix + " 2"));
+        } finally {
+            xoaDuLieuDeThiPhanTrang(prefix);
+        }
+    }
+
+    @Test
+    @DisplayName("TC_BE_04: GET /api/exams trả phần còn lại ở trang kế tiếp")
+    void testPhanTrangDeThiTrangKeTiep() throws Exception {
+        String prefix = taoDuLieuDeThiPhanTrang();
+        try {
+            mockMvc.perform(get("/api/exams")
+                            .param("page", "2")
+                            .param("size", "2")
+                            .param("search", prefix))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].title").value(prefix + " 3"));
+        } finally {
+            xoaDuLieuDeThiPhanTrang(prefix);
+        }
     }
 
     @Test
@@ -118,5 +157,19 @@ class BackendTest {
                 .andExpect(jsonPath("$.history[0].submittedAt").isNotEmpty())
                 .andReturn().getResponse().getContentAsString();
         assertEquals(soLanTruoc + 1, (int) JsonPath.read(sau, "$.total"));
+    }
+
+    private String taoDuLieuDeThiPhanTrang() {
+        String prefix = "Pagination-" + System.nanoTime();
+        for (int i = 1; i <= 3; i++) {
+            jdbcTemplate.update(
+                    "INSERT INTO exams (title, description, duration_minutes) VALUES (?, ?, ?)",
+                    prefix + " " + i, "Du lieu kiem thu phan trang", 120);
+        }
+        return prefix;
+    }
+
+    private void xoaDuLieuDeThiPhanTrang(String prefix) {
+        jdbcTemplate.update("DELETE FROM exams WHERE title LIKE ?", prefix + "%");
     }
 }

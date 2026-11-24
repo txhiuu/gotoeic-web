@@ -9,12 +9,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @RestController
@@ -29,12 +31,39 @@ public class ExamController {
     private QuestionDAO questionDAO;
 
     @GetMapping
-    public List<Map<String, Object>> getAll() {
+    public ResponseEntity<?> getAll(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String search) {
+        boolean paginate = page != null || size != null;
+        int pageNumber = page == null ? 1 : page;
+        int pageSize = size == null ? 5 : size;
+        if (pageNumber < 1 || (paginate && pageSize < 1)) {
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("success", false);
+            response.put("message", "page phải từ 1 trở lên và size phải lớn hơn 0");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        String keyword = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
         List<Map<String, Object>> exams = new ArrayList<>();
         for (Exam exam : examDAO.findAll()) {
-            exams.add(toResponse(exam));
+            if (keyword.isEmpty()
+                    || containsIgnoreCase(exam.getTitle(), keyword)
+                    || containsIgnoreCase(exam.getDescription(), keyword)) {
+                exams.add(toResponse(exam));
+            }
         }
-        return exams;
+
+        if (paginate) {
+            long start = (long) (pageNumber - 1) * pageSize;
+            if (start >= exams.size()) {
+                return ResponseEntity.ok(List.of());
+            }
+            int end = (int) Math.min(start + pageSize, exams.size());
+            exams = new ArrayList<>(exams.subList((int) start, end));
+        }
+        return ResponseEntity.ok(exams);
     }
 
     @GetMapping("/{id}")
@@ -61,5 +90,9 @@ public class ExamController {
         response.put("durationMinutes", exam.getDurationMinutes());
         response.put("createdAt", exam.getCreatedAt());
         return response;
+    }
+
+    private boolean containsIgnoreCase(String value, String keyword) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(keyword);
     }
 }

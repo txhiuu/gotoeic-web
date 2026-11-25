@@ -33,7 +33,7 @@
     </style>
 </head>
 
-<body onload="loadQuestions(); loadExams();">
+<body onload="initAdmin()">
 
     <div class="admin-layout">
         <!-- SIDEBAR -->
@@ -46,6 +46,7 @@
                 <button class="side-btn active" id="btnDash" onclick="switchAdminTab('dash')"><i class="bi bi-speedometer2 me-2 fs-6"></i>Bảng điều khiển</button>
                 <button class="side-btn" id="btnQuest" onclick="switchAdminTab('quest')"><i class="bi bi-database-check me-2 fs-6"></i>Ngân hàng câu hỏi</button>
                 <button class="side-btn" id="btnExam" onclick="switchAdminTab('exam')"><i class="bi bi-journal-text me-2 fs-6"></i>Quản lý đề thi</button>
+                <button class="side-btn" id="btnSW" onclick="switchAdminTab('sw')"><i class="bi bi-mic me-2 fs-6"></i>Speaking &amp; Writing</button>
                 <button class="side-btn" id="btnPart" onclick="switchAdminTab('part')"><i class="bi bi-layers me-2 fs-6"></i>Part &amp; Chủ đề</button>
                 <button class="side-btn" id="btnUser" onclick="switchAdminTab('user')"><i class="bi bi-people me-2 fs-6"></i>Tài khoản &amp; Quyền</button>
                 <button class="side-btn" id="btnImp" onclick="switchAdminTab('imp')"><i class="bi bi-arrow-left-right me-2 fs-6"></i>Nhập / Xuất dữ liệu</button>
@@ -72,11 +73,31 @@
 
                 <!-- 1. TAB BẢNG ĐIỀU KHIỂN -->
                 <div id="viewDash">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <div class="small text-secondary" id="dashUpdated">Đang tải số liệu...</div>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="loadDashboard()"><i class="bi bi-arrow-clockwise me-1"></i>Làm mới số liệu</button>
+                    </div>
+                    <div class="alert alert-danger small py-2 d-none" id="dashError"></div>
                     <div class="row g-3 mb-4">
-                        <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Tổng tài khoản (users)</div><div class="fs-3 fw-bold text-primary mt-1">2</div><div class="small text-muted mt-1">1 Admin, 1 Sinh viên</div></div></div>
-                        <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Ngân hàng câu hỏi</div><div class="fs-3 fw-bold text-success mt-1" id="dashTotalQuestions">...</div><div class="small text-muted mt-1">Trong CSDL</div></div></div>
-                        <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Đề thi (exams)</div><div class="fs-3 fw-bold text-dark mt-1" id="dashTotalExams">...</div><div class="small text-muted mt-1" id="dashExamNote">Đang tải...</div></div></div>
-                        <div class="col-md-3"><div class="clean-card p-3"><div class="small text-secondary fw-semibold">Điểm trung bình</div><div class="fs-3 fw-bold text-info mt-1">5.0 / 10</div><div class="small text-success mt-1">Từ bảng exam_results</div></div></div>
+                        <div class="col-md-4"><div class="clean-card p-3 h-100"><div class="small text-secondary fw-semibold">Tổng tài khoản (users)</div><div class="fs-3 fw-bold text-primary mt-1">2</div><div class="small text-muted mt-1">1 Admin, 1 Sinh viên</div></div></div>
+                        <div class="col-md-4"><div class="clean-card p-3 h-100"><div class="small text-secondary fw-semibold">Ngân hàng câu hỏi</div><div class="fs-3 fw-bold text-success mt-1" id="dashTotalQuestions">...</div><div class="small text-muted mt-1" id="dashQuestionNote">Đang tải...</div></div></div>
+                        <div class="col-md-4"><div class="clean-card p-3 h-100"><div class="small text-secondary fw-semibold">Đề thi (exams)</div><div class="fs-3 fw-bold text-dark mt-1" id="dashTotalExams">...</div><div class="small text-muted mt-1 text-truncate" id="dashExamNote">Đang tải...</div></div></div>
+                    </div>
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-7">
+                            <div class="clean-card p-4 h-100">
+                                <h6 class="fw-bold mb-1">Số câu hỏi theo Part</h6>
+                                <div class="small text-muted mb-3"><span id="dashPartCount">...</span> Part có câu hỏi · <span id="dashPartNote">Đang tải...</span></div>
+                                <div id="dashPartBars"><div class="text-muted small">Đang tải...</div></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="clean-card p-4 h-100">
+                                <h6 class="fw-bold mb-1">Số câu hỏi theo đề thi</h6>
+                                <div class="small text-muted mb-3">Trung bình <span id="dashAvgPerExam">...</span> câu / đề · <span id="dashAvgNote">Đang tải...</span></div>
+                                <div class="list-group list-group-flush small" id="dashExamList"><div class="text-muted">Đang tải...</div></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="row g-4">
                         <div class="col-lg-7">
@@ -85,58 +106,61 @@
                                     <h6 class="fw-bold mb-0">Phổ điểm thi thử gần đây</h6>
                                     <span class="badge bg-light text-dark border">Tháng 11/2026</span>
                                 </div>
-                                <div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>Trên 800 điểm</span><span>340 SV (19%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-success" style="width: 19%"></div></div></div>
-                                <div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>650 - 795 điểm</span><span>720 SV (40%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-primary" style="width: 40%"></div></div></div>
-                                <div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>500 - 645 điểm</span><span>540 SV (30%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-info" style="width: 30%"></div></div></div>
-                                <div><div class="d-flex justify-content-between small fw-semibold mb-1"><span>Dưới 500 điểm</span><span>220 SV (11%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-warning" style="width: 11%"></div></div></div>
+                                <div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>Trên 800 điểm</span><span>0 SV (0%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-success" style="width: 0%"></div></div></div>
+                                <div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>650 - 795 điểm</span><span>0 SV (0%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-primary" style="width: 0%"></div></div></div>
+                                <div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>500 - 645 điểm</span><span>0 SV (0%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-info" style="width: 0%"></div></div></div>
+                                <div><div class="d-flex justify-content-between small fw-semibold mb-1"><span>Dưới 500 điểm</span><span>0 SV (0%)</span></div><div class="progress" style="height: 8px;"><div class="progress-bar bg-warning" style="width: 0%"></div></div></div>
                             </div>
                         </div>
                         <div class="col-lg-5">
                             <div class="clean-card p-4 h-100">
                                 <h6 class="fw-bold mb-3">Lịch sử nộp bài gần đây</h6>
-                                <div class="list-group list-group-flush small">
-                                    <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
-                                        <div><div class="fw-semibold">Nguyễn Văn Sinh Viên</div><div class="text-muted">Đề thi thử TOEIC 01</div></div>
-                                        <span class="badge bg-success-subtle text-success fs-6">5.0 điểm</span>
-                                    </div>
+                                <div class="text-center text-muted small py-4">
+                                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>Chưa có bài nộp nào.
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- 2. TAB QUẢN LÝ CÂU HỎI -->
+                <!-- 2. TAB QUẢN LÝ CÂU HỎI (CRUD /api/questions) -->
                 <div id="viewQuest" class="d-none">
                     <div class="clean-card p-4">
                         <div class="row align-items-center justify-content-between g-3 mb-3">
-                            <div class="col-md-7 d-flex gap-2">
-                                <input type="text" id="questSearch" class="form-control" placeholder="Tìm theo nội dung câu hỏi..." onkeyup="filterQuestionsTable()" />
-                                <select id="questPartFilter" class="form-select w-auto" onchange="filterQuestionsTable()">
-                                    <option value="all">Tất cả Part</option><option value="Part 5">Part 5</option><option value="Part 6">Part 6</option><option value="Part 7">Part 7</option>
+                            <div class="col-lg-8 d-flex flex-wrap gap-2">
+                                <input type="search" id="questSearch" class="form-control" style="max-width: 280px;" placeholder="Tìm theo nội dung câu hỏi..." oninput="renderQuestionTable()" />
+                                <select id="questPartFilter" class="form-select w-auto" onchange="renderQuestionTable()">
+                                    <option value="all">Tất cả Part</option>
+                                    <option value="Part 1">Part 1</option><option value="Part 2">Part 2</option><option value="Part 3">Part 3</option><option value="Part 4">Part 4</option>
+                                    <option value="Part 5">Part 5</option><option value="Part 6">Part 6</option><option value="Part 7">Part 7</option>
+                                </select>
+                                <select id="questExamFilter" class="form-select w-auto" onchange="renderQuestionTable()">
+                                    <option value="all">Tất cả đề thi</option>
                                 </select>
                             </div>
-                            <div class="col-md-5 text-md-end">
+                            <div class="col-lg-4 text-lg-end d-flex gap-2 justify-content-lg-end">
+                                <button class="btn btn-outline-secondary" onclick="loadQuestions()"><i class="bi bi-arrow-clockwise me-1"></i>Tải lại</button>
                                 <button class="btn btn-primary" onclick="openAddModal()"><i class="bi bi-plus-circle me-1"></i>Thêm câu hỏi</button>
                             </div>
                         </div>
                         <div class="table-responsive">
                             <table class="table align-middle table-hover mb-0">
                                 <thead class="table-light small">
-                                    <tr><th>ID</th><th>Part TOEIC</th><th>Chủ đề</th><th>Mức độ</th><th>Nội dung câu hỏi</th><th>Đáp án đúng</th><th class="text-end">Thao tác</th></tr>
+                                    <tr><th>ID</th><th>Part TOEIC</th><th>Đề thi</th><th>Nội dung câu hỏi</th><th>Đáp án đúng</th><th class="text-end">Thao tác</th></tr>
                                 </thead>
-                                <tbody id="qTableBody"></tbody>
+                                <tbody id="qTableBody"><tr><td colspan="6" class="text-center text-muted py-4">Đang tải câu hỏi...</td></tr></tbody>
                             </table>
                         </div>
+                        <div class="small text-muted mt-2" id="questCountInfo"></div>
                     </div>
                 </div>
-
-                                <!-- 3. TAB QUẢN LÝ ĐỀ THI -->
+                <!-- 3. TAB QUẢN LÝ ĐỀ THI (GET /api/exams?page=&size=&search=) -->
                 <div id="viewExam" class="d-none">
                     <div class="clean-card p-4">
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                             <h6 class="fw-bold mb-0">Danh sách Đề thi thử TOEIC</h6>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-secondary" onclick="loadExams()"><i class="bi bi-arrow-clockwise me-1"></i>Tải lại</button>
+                            <div class="d-flex flex-wrap gap-2">
+                                <input type="search" id="examSearch" class="form-control form-control-sm" style="width: 220px;" placeholder="Tìm theo tên hoặc mô tả..." oninput="onExamSearch()" />
+                                <button class="btn btn-sm btn-outline-secondary" onclick="reloadExams()"><i class="bi bi-arrow-clockwise me-1"></i>Tải lại</button>
                                 <button class="btn btn-sm btn-primary" onclick="openCreateExam()"><i class="bi bi-plus-circle me-1"></i>Tạo đề thi</button>
                             </div>
                         </div>
@@ -148,11 +172,45 @@
                                 </tbody>
                             </table>
                         </div>
-                        
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                            <div class="small text-muted" id="examPageInfo"></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <select id="examPageSize" class="form-select form-select-sm w-auto" onchange="changeExamPageSize()" aria-label="Số đề mỗi trang">
+                                    <option value="5" selected>5 / trang</option><option value="10">10 / trang</option><option value="20">20 / trang</option>
+                                </select>
+                                <button class="btn btn-sm btn-outline-secondary" id="examPrev" onclick="goExamPage(-1)"><i class="bi bi-chevron-left"></i> Trước</button>
+                                <button class="btn btn-sm btn-outline-secondary" id="examNext" onclick="goExamPage(1)">Sau <i class="bi bi-chevron-right"></i></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 4. TAB PART & CHỦ ĐỀ -->
+                <!-- 3b. TAB SPEAKING & WRITING -->
+                <div id="viewSW" class="d-none">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6"><div class="clean-card p-3 h-100"><div class="small text-secondary fw-semibold"><i class="bi bi-mic me-1 text-danger"></i>Speaking</div><div class="fs-4 fw-bold mt-1">11 câu · khoảng 20 phút</div><div class="small text-muted mt-1">5 dạng bài · thang điểm 0–200</div></div></div>
+                        <div class="col-md-6"><div class="clean-card p-3 h-100"><div class="small text-secondary fw-semibold"><i class="bi bi-pencil-square me-1 text-warning"></i>Writing</div><div class="fs-4 fw-bold mt-1">8 câu · khoảng 60 phút</div><div class="small text-muted mt-1">3 dạng bài · thang điểm 0–200</div></div></div>
+                    </div>
+                    <div class="clean-card p-4 mb-4">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-mic me-2 text-danger"></i>Đề Speaking</h6>
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light small"><tr><th>Câu</th><th>Dạng bài</th><th>Chuẩn bị</th><th>Trả lời</th><th>Thang điểm</th><th class="text-end">Đề mẫu</th></tr></thead>
+                                <tbody id="swSpeakingBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="clean-card p-4">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-pencil-square me-2 text-warning"></i>Đề Writing</h6>
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light small"><tr><th>Câu</th><th>Dạng bài</th><th>Thời gian</th><th>Yêu cầu</th><th>Thang điểm</th><th class="text-end">Đề mẫu</th></tr></thead>
+                                <tbody id="swWritingBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                                <!-- 4. TAB PART & CHỦ ĐỀ -->
                 <div id="viewPart" class="d-none">
                     <div class="row g-4">
                         <div class="col-lg-7">
@@ -221,7 +279,7 @@
         </div>
     </div>
 
-    <!-- MODAL THÊM/SỬA CÂU HỎI -->
+<!-- MODAL THÊM/SỬA CÂU HỎI (POST / PUT /api/questions) -->
     <div class="modal fade" id="questionModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content shadow">
@@ -232,27 +290,36 @@
                 <div class="modal-body p-4">
                     <form id="addQForm" novalidate onsubmit="handleSaveQuestion(event)">
                         <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label small fw-semibold">Part TOEIC *</label>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold" for="qPart">Part TOEIC *</label>
                                 <select id="qPart" class="form-select" required>
+                                    <option value="Part 1">Part 1: Photographs</option>
+                                    <option value="Part 2">Part 2: Question-Response</option>
+                                    <option value="Part 3">Part 3: Conversations</option>
+                                    <option value="Part 4">Part 4: Talks</option>
                                     <option value="Part 5" selected>Part 5: Incomplete Sentences</option>
                                     <option value="Part 6">Part 6: Text Completion</option>
                                     <option value="Part 7">Part 7: Reading Comprehension</option>
                                 </select>
                             </div>
-                            <div class="col-md-4"><label class="form-label small fw-semibold">Chủ đề *</label><input type="text" id="qTopic" class="form-control" placeholder="VD: Grammar" required /></div>
-                            <div class="col-md-4"><label class="form-label small fw-semibold">Mức độ *</label><select id="qLevel" class="form-select"><option value="Dễ">Dễ</option><option value="Trung bình" selected>Trung bình</option><option value="Khó">Khó</option></select></div>
-                            <div class="col-12"><label class="form-label small fw-semibold">Nội dung câu hỏi *</label><textarea id="qContent" class="form-control" rows="2" required></textarea></div>
-                            <div class="col-md-6"><label class="form-label small fw-semibold">A *</label><input type="text" id="optA" class="form-control" required /></div>
-                            <div class="col-md-6"><label class="form-label small fw-semibold">B *</label><input type="text" id="optB" class="form-control" required /></div>
-                            <div class="col-md-6"><label class="form-label small fw-semibold">C *</label><input type="text" id="optC" class="form-control" required /></div>
-                            <div class="col-md-6"><label class="form-label small fw-semibold">D *</label><input type="text" id="optD" class="form-control" required /></div>
-                            <div class="col-md-4">
-                                <label class="form-label small fw-semibold">Đáp án đúng *</label>
-                                <select id="qCorrect" class="form-select" required><option value="">-- Chọn --</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+                            <div class="col-md-7">
+                                <label class="form-label small fw-semibold" for="qExam">Thuộc đề thi *</label>
+                                <select id="qExam" class="form-select" required><option value="">-- Chọn đề thi --</option></select>
+                                <div class="invalid-feedback">Hãy chọn đề thi chứa câu hỏi.</div>
                             </div>
-                            <div class="col-md-8"><label class="form-label small fw-semibold">Giải thích chi tiết</label><input type="text" id="qExpl" class="form-control" /></div>
-                            <div class="col-12 mt-4"><button type="submit" class="btn btn-primary w-100 py-2" id="btnSaveQuestion">Lưu vào Database</button></div>
+                            <div class="col-12"><label class="form-label small fw-semibold" for="qContent">Nội dung câu hỏi *</label><textarea id="qContent" class="form-control" rows="2" maxlength="255" required></textarea><div class="invalid-feedback">Nội dung không được để trống.</div></div>
+                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optA">A *</label><input type="text" id="optA" class="form-control" maxlength="255" required /><div class="invalid-feedback">Nhập phương án A.</div></div>
+                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optB">B *</label><input type="text" id="optB" class="form-control" maxlength="255" required /><div class="invalid-feedback">Nhập phương án B.</div></div>
+                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optC">C *</label><input type="text" id="optC" class="form-control" maxlength="255" required /><div class="invalid-feedback">Nhập phương án C.</div></div>
+                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optD">D *</label><input type="text" id="optD" class="form-control" maxlength="255" required /><div class="invalid-feedback">Nhập phương án D.</div></div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="qCorrect">Đáp án đúng *</label>
+                                <select id="qCorrect" class="form-select" required><option value="">-- Chọn --</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+                                <div class="invalid-feedback">Chọn đáp án đúng.</div>
+                            </div>
+                            <div class="col-md-8"><label class="form-label small fw-semibold" for="qExpl">Giải thích chi tiết</label><input type="text" id="qExpl" class="form-control" maxlength="255" /></div>
+                            <div class="col-12"><div class="alert alert-danger small py-2 mb-0 d-none" id="qFormError"></div></div>
+                            <div class="col-12 mt-2"><button type="submit" class="btn btn-primary w-100 py-2" id="btnSaveQuestion">Lưu</button></div>
                         </div>
                     </form>
                 </div>
@@ -260,7 +327,53 @@
         </div>
     </div>
 
-    <!-- CÁC MODAL PHỤ (Đề thi, Chủ đề, Tài khoản) -->
+    <!-- Form xác nhận XÓA câu hỏi (DELETE /api/questions/{id}) -->
+    <div class="modal fade" id="questionDeleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Xóa câu hỏi</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="mb-2">Xóa câu hỏi <code id="deleteQuestionId"></code>?</p>
+                    <p class="small text-secondary mb-0" id="deleteQuestionContent"></p>
+                    <div class="alert alert-danger small py-2 mt-3 mb-0 d-none" id="qDeleteError"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmDeleteQuestion" onclick="confirmDeleteQuestion()">Xóa câu hỏi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- XEM ĐỀ MẪU SPEAKING / WRITING -->
+    <div class="modal fade" id="swModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <div>
+                        <h6 class="modal-title fw-bold mb-1" id="swModalTitle">Đề mẫu</h6>
+                        <div class="small text-muted" id="swModalMeta"></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4" id="swModalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông báo nhỏ góc phải -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="adminToast" class="toast align-items-center border-0" role="status" aria-live="polite" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="adminToastBody"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+            </div>
+        </div>
+    </div>
+        <!-- CÁC MODAL PHỤ (Đề thi, Chủ đề, Tài khoản) -->
         <!-- Form THÊM / SỬA đề thi (dùng chung) -->
     <div class="modal fade" id="examModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -336,164 +449,51 @@
     <div class="modal fade" id="userModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content p-4 text-center">Tính năng Thêm user đang phát triển...</div></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let allQuestions = []; 
-        let editingQuestionId = null; 
+<script>
+        // =====================================================================
+        //  ĐỊA CHỈ API (Back-end Spring Boot chạy ở cổng 8080)
+        //  - Câu hỏi : GET / POST /api/questions, PUT / DELETE /api/questions/{id}
+        //  - Đề thi  : GET /api/exams?page=&size=&search=, GET /api/exams/{id}
+        // =====================================================================
+        const API_BASE = 'http://localhost:8080';
+        const QUESTION_API = API_BASE + '/api/questions';
+        const EXAM_API = API_BASE + '/api/exams';
+        const PARTS = ['Part 1', 'Part 2', 'Part 3', 'Part 4', 'Part 5', 'Part 6', 'Part 7'];
+
+        let allQuestions = [];      // dữ liệu từ GET /api/questions
+        let examOptions = [];       // toàn bộ đề (GET /api/exams không phân trang) cho ô chọn đề + Dashboard
+        let editingQuestionId = null;
+        let deletingQuestionId = null;
 
         const TABS = {
             dash: { title: 'Bảng điều khiển & Thống kê', sub: 'Tổng quan hệ thống thi và quản trị học viên' },
-            quest: { title: 'Quản lý Ngân hàng Câu hỏi', sub: 'Thêm, sửa, xóa câu hỏi' },
-            exam: { title: 'Tạo và Quản lý Đề thi thử', sub: 'Quản lý bộ đề' },
+            quest: { title: 'Quản lý Ngân hàng Câu hỏi', sub: 'Thêm, sửa, xóa câu hỏi qua API /api/questions' },
+            exam: { title: 'Tạo và Quản lý Đề thi thử', sub: 'Tìm kiếm và phân trang qua API /api/exams' },
+            sw: { title: 'Đề Speaking & Writing', sub: 'Cấu trúc và đề mẫu TOEIC Speaking & Writing' },
             part: { title: 'Quản lý Part & Chủ đề', sub: 'Cấu trúc bài thi' },
             user: { title: 'Quản lý Tài khoản', sub: 'Danh sách người dùng' },
             imp: { title: 'Nhập / Xuất dữ liệu', sub: 'Excel/CSV' }
         };
 
         function switchAdminTab(tabKey) {
-            const btnMap = { dash: 'btnDash', quest: 'btnQuest', exam: 'btnExam', part: 'btnPart', user: 'btnUser', imp: 'btnImp' };
+            const btnMap = { dash: 'btnDash', quest: 'btnQuest', exam: 'btnExam', sw: 'btnSW', part: 'btnPart', user: 'btnUser', imp: 'btnImp' };
             Object.values(btnMap).forEach(bId => document.getElementById(bId).classList.remove('active'));
             document.getElementById(btnMap[tabKey]).classList.add('active');
 
-            const viewMap = { dash: 'viewDash', quest: 'viewQuest', exam: 'viewExam', part: 'viewPart', user: 'viewUser', imp: 'viewImp' };
+            const viewMap = { dash: 'viewDash', quest: 'viewQuest', exam: 'viewExam', sw: 'viewSW', part: 'viewPart', user: 'viewUser', imp: 'viewImp' };
             Object.values(viewMap).forEach(vId => document.getElementById(vId).classList.add('d-none'));
             document.getElementById(viewMap[tabKey]).classList.remove('d-none');
 
             const info = TABS[tabKey];
             document.getElementById('adminHeaderTitle').textContent = info.title;
             document.getElementById('adminHeaderSub').textContent = info.sub;
-            
-            if(tabKey === 'quest') loadQuestions();
-             if(tabKey === 'exam') loadExams();
+
+            if (tabKey === 'dash') loadDashboard();
+            if (tabKey === 'quest') loadQuestions();
+            if (tabKey === 'exam') loadExams();
         }
 
-        function filterQuestionsTable() {
-            const text = document.getElementById('questSearch').value.toLowerCase().trim();
-            const part = document.getElementById('questPartFilter').value;
-            const rows = document.querySelectorAll('#qTableBody tr');
-            rows.forEach(r => {
-                const rText = r.textContent.toLowerCase();
-                const rPart = r.children[1].textContent.trim();
-                r.style.display = (rText.includes(text) && (part === 'all' || rPart.includes(part))) ? '' : 'none';
-            });
-        }
-
-        function openAddModal() {
-            editingQuestionId = null;
-            document.getElementById('addQForm').reset();
-            document.getElementById('modalQuestionTitle').innerHTML = '<i class="bi bi-plus-circle text-primary me-2"></i>Thêm Câu hỏi TOEIC';
-            document.getElementById('btnSaveQuestion').innerText = 'Lưu vào Database';
-            new bootstrap.Modal(document.getElementById('questionModal')).show();
-        }
-
-        function editQuestion(id) {
-            const q = allQuestions.find(item => item.id === id);
-            if (!q) return;
-
-            editingQuestionId = id;
-            document.getElementById('qPart').value = q.part || 'Part 5';
-            document.getElementById('qTopic').value = q.examId || 1; 
-            document.getElementById('qContent').value = q.content || '';
-            document.getElementById('optA').value = q.optionA || '';
-            document.getElementById('optB').value = q.optionB || '';
-            document.getElementById('optC').value = q.optionC || '';
-            document.getElementById('optD').value = q.optionD || '';
-            document.getElementById('qCorrect').value = q.correctAnswer || '';
-            document.getElementById('qExpl').value = q.explanation || '';
-
-            document.getElementById('modalQuestionTitle').innerHTML = '<i class="bi bi-pencil-square text-warning me-2"></i>Cập nhật Câu hỏi';
-            document.getElementById('btnSaveQuestion').innerText = 'Cập nhật thay đổi';
-            new bootstrap.Modal(document.getElementById('questionModal')).show();
-        }
-
-        async function loadQuestions() {
-            try {
-                const response = await fetch('http://localhost:8080/api/questions');
-                if (response.ok) {
-                    allQuestions = await response.json();
-                    const tbody = document.getElementById('qTableBody');
-                    tbody.innerHTML = ''; 
-                    document.getElementById('dashTotalQuestions').textContent = allQuestions.length;
-
-                    if (allQuestions.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Chưa có câu hỏi nào.</td></tr>';
-                        return;
-                    }
-
-                    allQuestions.forEach(q => {
-                        tbody.insertAdjacentHTML('beforeend', `
-                            <tr>
-                                <td>#${q.id}</td>
-                                <td><span class="badge bg-primary-subtle text-primary">${q.part || 'Part 5'}</span></td>
-                                <td>Đề ${q.examId}</td>
-                                <td><span class="badge bg-info-subtle text-info">Trung bình</span></td>
-                                <td>${q.content}</td>
-                                <td><span class="badge bg-success-subtle text-success">${q.correctAnswer}</span></td>
-                                <td class="text-end">
-                                    <button class="btn btn-sm btn-outline-secondary py-1 px-2" onclick="editQuestion(${q.id})"><i class="bi bi-pencil"></i></button>
-                                    <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteQuestion(${q.id})"><i class="bi bi-trash"></i></button>
-                                </td>
-                            </tr>
-                        `);
-                    });
-                }
-            } catch (error) { console.error("Lỗi tải danh sách:", error); }
-        }
-
-        async function handleSaveQuestion(e) {
-            e.preventDefault();
-            const content = document.getElementById('qContent').value.trim();
-            const correct = document.getElementById('qCorrect').value;
-            
-            if (!content || !correct) { alert('Vui lòng nhập đầy đủ thông tin!'); return; }
-
-            const questionData = {
-                examId: 1, 
-                content: content,
-                optionA: document.getElementById('optA').value.trim(),
-                optionB: document.getElementById('optB').value.trim(),
-                optionC: document.getElementById('optC').value.trim(),
-                optionD: document.getElementById('optD').value.trim(),
-                correctAnswer: correct, 
-                explanation: document.getElementById('qExpl').value.trim(),
-                part: document.getElementById('qPart').value
-            };
-
-            try {
-                let url = 'http://localhost:8080/api/questions';
-                let method = 'POST';
-                if (editingQuestionId !== null) {
-                    url = `http://localhost:8080/api/questions/${editingQuestionId}`;
-                    method = 'PUT';
-                }
-
-                const response = await fetch(url, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(questionData)
-                });
-
-                if (response.ok) {
-                    alert(editingQuestionId !== null ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
-                    bootstrap.Modal.getInstance(document.getElementById('questionModal')).hide();
-                    loadQuestions(); 
-                } else { alert('Có lỗi xảy ra khi lưu!'); }
-            } catch (error) { console.error('Lỗi API:', error); alert('Không thể kết nối đến Backend!'); }
-        }
-
-        async function deleteQuestion(id) {
-            if (!confirm('Bạn có chắc chắn muốn xóa câu hỏi này không?')) return;
-            try {
-                const response = await fetch(`http://localhost:8080/api/questions/${id}`, { method: 'DELETE' });
-                if (response.ok) { alert('Xóa thành công!'); loadQuestions(); }
-            } catch (error) { console.error(error); }
-        }
-        //  QUẢN LÝ ĐỀ THI 
-        const EXAM_API = 'http://localhost:8080/api/exams';
-        let allExams = [];          
-        let editingExamId = null;   
-        let deletingExamId = null;
-        let nextLocalId = 1;       
-
+        // ---------- Tiện ích chung ----------
         // Chống XSS: escape dữ liệu trước khi chèn vào HTML
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -507,34 +507,355 @@
             return isNaN(d) ? escapeHtml(value) : d.toLocaleDateString('vi-VN');
         }
 
-        // ---------- API 1: GET /api/exams ----------
+        function showToast(message, type) {
+            const toast = document.getElementById('adminToast');
+            toast.className = 'toast align-items-center border-0 text-white ' + (type === 'error' ? 'bg-danger' : 'bg-success');
+            document.getElementById('adminToastBody').textContent = message;
+            bootstrap.Toast.getOrCreateInstance(toast, { delay: 3000 }).show();
+        }
+
+        // Đọc phản hồi của API ghi dữ liệu câu hỏi.
+        // Back-end trả về CHUỖI ("Thêm thành công" / "Thêm thất bại") với mã 200, nên phải đọc nội dung.
+        async function readWriteResult(response) {
+            const text = (await response.text()).trim();
+            if (response.status === 403) {
+                return { ok: false, message: 'Bị từ chối (403): chỉ Quản trị viên đã đăng nhập mới được sửa / xóa câu hỏi.' };
+            }
+            if (!response.ok) return { ok: false, message: 'Lỗi ' + response.status + (text ? ': ' + text : '') };
+            if (/thất bại/i.test(text)) return { ok: false, message: text };
+            return { ok: true, message: text || 'Thành công' };
+        }
+
+        const NETWORK_ERROR = 'Không gọi được API. Kiểm tra Backend đã chạy chưa; nếu đang sửa / xóa, yêu cầu có thể bị chặn bởi phân quyền Quản trị viên.';
+
+        // Lấy toàn bộ đề thi (không phân trang) cho ô chọn đề và Dashboard
+        async function fetchAllExams() {
+            const response = await fetch(EXAM_API);
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            examOptions = await response.json();
+            fillExamSelects();
+            return examOptions;
+        }
+
+        function examTitleById(id) {
+            const exam = examOptions.find(e => e.id === id);
+            return exam ? exam.title : 'Đề #' + id;
+        }
+
+        function fillExamSelects() {
+            const filter = document.getElementById('questExamFilter');
+            const current = filter.value;
+            filter.innerHTML = '<option value="all">Tất cả đề thi</option>' +
+                examOptions.map(e => `<option value="${e.id}">${escapeHtml(e.title)}</option>`).join('');
+            filter.value = examOptions.some(e => String(e.id) === current) ? current : 'all';
+
+            document.getElementById('qExam').innerHTML = '<option value="">-- Chọn đề thi --</option>' +
+                examOptions.map(e => `<option value="${e.id}">ID ${e.id} · ${escapeHtml(e.title)}</option>`).join('');
+        }
+
+        // =====================================================================
+        //  1. BẢNG ĐIỀU KHIỂN - số liệu thật từ GET /api/questions + GET /api/exams
+        // =====================================================================
+        async function loadDashboard() {
+            const errorBox = document.getElementById('dashError');
+            errorBox.classList.add('d-none');
+            const [qRes, eRes] = await Promise.allSettled([
+                fetch(QUESTION_API).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
+                fetchAllExams()
+            ]);
+            if (qRes.status === 'fulfilled') allQuestions = qRes.value;
+            const failed = [];
+            if (qRes.status === 'rejected') failed.push('GET /api/questions');
+            if (eRes.status === 'rejected') failed.push('GET /api/exams');
+            if (failed.length) {
+                errorBox.textContent = 'Không tải được ' + failed.join(' và ') + '. Kiểm tra Backend đã chạy chưa.';
+                errorBox.classList.remove('d-none');
+            }
+            renderDashboard(qRes.status === 'fulfilled', eRes.status === 'fulfilled');
+        }
+
+        function renderDashboard(hasQuestions, hasExams) {
+            const qs = allQuestions, exams = examOptions;
+            const setText = (id, text) => { document.getElementById(id).textContent = text; };
+
+            // Ô 1: tổng câu hỏi
+            if (hasQuestions) {
+                const withExpl = qs.filter(q => q.explanation && q.explanation.trim()).length;
+                setText('dashTotalQuestions', qs.length);
+                setText('dashQuestionNote', withExpl + ' câu có lời giải');
+            } else { setText('dashTotalQuestions', '?'); setText('dashQuestionNote', 'Không tải được'); }
+
+            // Ô 2: tổng đề thi
+            if (hasExams) {
+                setText('dashTotalExams', exams.length);
+                const newest = exams.slice().sort((a, b) => b.id - a.id)[0];
+                setText('dashExamNote', newest ? 'Mới nhất: ' + newest.title : 'Chưa có đề thi');
+            } else { setText('dashTotalExams', '?'); setText('dashExamNote', 'Không tải được'); }
+
+            // Ô 3 + biểu đồ: câu hỏi theo Part
+            const partCount = {};
+            PARTS.forEach(p => partCount[p] = 0);
+            let otherPart = 0;
+            qs.forEach(q => { if (q.part in partCount) partCount[q.part]++; else otherPart++; });
+            const partsWithData = PARTS.filter(p => partCount[p] > 0);
+            if (hasQuestions) {
+                setText('dashPartCount', partsWithData.length + ' / 7');
+                const missing = PARTS.filter(p => partCount[p] === 0).map(p => p.replace('Part ', ''));
+                setText('dashPartNote', missing.length ? 'Chưa có câu: Part ' + missing.join(', ') : 'Đủ cả 7 Part');
+                const max = Math.max(1, ...Object.values(partCount));
+                document.getElementById('dashPartBars').innerHTML = PARTS.map(p => {
+                    const n = partCount[p], pct = qs.length ? Math.round(n * 100 / qs.length) : 0;
+                    return `<div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>${p}</span><span>${n} câu (${pct}%)</span></div>` +
+                        `<div class="progress" style="height: 8px;" role="progressbar" aria-label="${p}" aria-valuenow="${n}" aria-valuemin="0" aria-valuemax="${max}"><div class="progress-bar" style="width: ${n * 100 / max}%"></div></div></div>`;
+                }).join('') + (otherPart ? `<div class="small text-muted">${otherPart} câu chưa ghi Part</div>` : '');
+            } else {
+                setText('dashPartCount', '?'); setText('dashPartNote', 'Không tải được');
+                document.getElementById('dashPartBars').innerHTML = '<div class="text-danger small">Không tải được câu hỏi.</div>';
+            }
+
+            // Ô 4 + danh sách: câu hỏi theo đề thi
+            if (hasQuestions && hasExams) {
+                const perExam = exams.map(e => ({ exam: e, n: qs.filter(q => q.examId === e.id).length }));
+                const inExams = perExam.reduce((s, x) => s + x.n, 0);
+                setText('dashAvgPerExam', exams.length ? (inExams / exams.length).toFixed(1).replace('.0', '') : '0');
+                setText('dashAvgNote', inExams + ' câu thuộc ' + exams.length + ' đề');
+                const list = document.getElementById('dashExamList');
+                list.innerHTML = perExam.length
+                    ? perExam.map(x => `<div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center gap-2"><div class="text-truncate"><div class="fw-semibold text-truncate">${escapeHtml(x.exam.title)}</div><div class="text-muted">ID ${x.exam.id} · ${x.exam.durationMinutes} phút</div></div><span class="badge ${x.n ? 'bg-primary-subtle text-primary' : 'bg-light text-muted border'} fs-6">${x.n} câu</span></div>`).join('')
+                    : '<div class="text-muted">Chưa có đề thi.</div>';
+            } else {
+                setText('dashAvgPerExam', '?'); setText('dashAvgNote', 'Cần cả 2 API');
+                document.getElementById('dashExamList').innerHTML = '<div class="text-danger">Không tải được dữ liệu.</div>';
+            }
+            setText('dashUpdated', 'Cập nhật lúc ' + new Date().toLocaleTimeString('vi-VN'));
+        }
+
+        // =====================================================================
+        //  2. NGÂN HÀNG CÂU HỎI - CRUD /api/questions
+        // =====================================================================
+        async function loadQuestions() {
+            const tbody = document.getElementById('qTableBody');
+            try {
+                const [response] = await Promise.all([fetch(QUESTION_API), fetchAllExams().catch(() => {})]);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                allQuestions = await response.json();
+                renderQuestionTable();
+            } catch (error) {
+                console.error('Lỗi tải câu hỏi:', error);
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Không tải được câu hỏi. Kiểm tra Backend đã chạy chưa.</td></tr>';
+                document.getElementById('questCountInfo').textContent = '';
+            }
+        }
+
+        function renderQuestionTable() {
+            const tbody = document.getElementById('qTableBody');
+            const text = document.getElementById('questSearch').value.toLowerCase().trim();
+            const part = document.getElementById('questPartFilter').value;
+            const exam = document.getElementById('questExamFilter').value;
+            const rows = allQuestions.filter(q =>
+                (!text || (q.content || '').toLowerCase().includes(text)) &&
+                (part === 'all' || q.part === part) &&
+                (exam === 'all' || String(q.examId) === exam));
+
+            document.getElementById('questCountInfo').textContent = 'Hiển thị ' + rows.length + ' / ' + allQuestions.length + ' câu hỏi';
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">${allQuestions.length ? 'Không có câu hỏi khớp bộ lọc.' : 'Chưa có câu hỏi nào.'}</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = rows.map(q => `
+                <tr>
+                    <td><code>#${q.id}</code></td>
+                    <td><span class="badge bg-primary-subtle text-primary">${escapeHtml(q.part || '—')}</span></td>
+                    <td class="small">${escapeHtml(examTitleById(q.examId))}</td>
+                    <td>${escapeHtml(q.content)}</td>
+                    <td><span class="badge bg-success-subtle text-success">${escapeHtml(q.correctAnswer)}</span></td>
+                    <td class="text-end text-nowrap">
+                        <button class="btn btn-sm btn-outline-secondary py-1 px-2" title="Sửa" onclick="editQuestion(${q.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger py-1 px-2" title="Xóa" onclick="deleteQuestion(${q.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function resetQuestionForm() {
+            const form = document.getElementById('addQForm');
+            form.reset();
+            form.classList.remove('was-validated');
+            document.getElementById('qFormError').classList.add('d-none');
+        }
+
+        function openAddModal() {
+            editingQuestionId = null;
+            resetQuestionForm();
+            const examFilter = document.getElementById('questExamFilter').value;
+            if (examFilter !== 'all') document.getElementById('qExam').value = examFilter;
+            document.getElementById('modalQuestionTitle').innerHTML = '<i class="bi bi-plus-circle text-primary me-2"></i>Thêm Câu hỏi TOEIC';
+            document.getElementById('btnSaveQuestion').innerText = 'Lưu vào Database';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('questionModal')).show();
+        }
+
+        // Dữ liệu sửa lấy từ danh sách đã tải (GET /api/questions/{id} đang bị phân quyền chặn)
+        function editQuestion(id) {
+            const q = allQuestions.find(item => item.id === id);
+            if (!q) return;
+            editingQuestionId = id;
+            resetQuestionForm();
+            document.getElementById('qPart').value = PARTS.includes(q.part) ? q.part : 'Part 5';
+            document.getElementById('qExam').value = q.examId != null ? String(q.examId) : '';
+            document.getElementById('qContent').value = q.content || '';
+            document.getElementById('optA').value = q.optionA || '';
+            document.getElementById('optB').value = q.optionB || '';
+            document.getElementById('optC').value = q.optionC || '';
+            document.getElementById('optD').value = q.optionD || '';
+            document.getElementById('qCorrect').value = q.correctAnswer || '';
+            document.getElementById('qExpl').value = q.explanation || '';
+            document.getElementById('modalQuestionTitle').innerHTML = '<i class="bi bi-pencil-square text-warning me-2"></i>Cập nhật Câu hỏi #' + id;
+            document.getElementById('btnSaveQuestion').innerText = 'Cập nhật thay đổi';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('questionModal')).show();
+        }
+
+        // C / U: POST /api/questions hoặc PUT /api/questions/{id}
+        async function handleSaveQuestion(e) {
+            e.preventDefault();
+            const form = document.getElementById('addQForm');
+            const errorBox = document.getElementById('qFormError');
+            errorBox.classList.add('d-none');
+            ['qContent', 'optA', 'optB', 'optC', 'optD', 'qExpl'].forEach(id => {
+                const el = document.getElementById(id); el.value = el.value.trim();
+            });
+            form.classList.add('was-validated');
+            if (!form.checkValidity()) return;
+
+            const questionData = {
+                examId: parseInt(document.getElementById('qExam').value, 10),
+                content: document.getElementById('qContent').value,
+                optionA: document.getElementById('optA').value,
+                optionB: document.getElementById('optB').value,
+                optionC: document.getElementById('optC').value,
+                optionD: document.getElementById('optD').value,
+                correctAnswer: document.getElementById('qCorrect').value,
+                explanation: document.getElementById('qExpl').value,
+                part: document.getElementById('qPart').value
+            };
+            const isEdit = editingQuestionId !== null;
+            const btn = document.getElementById('btnSaveQuestion');
+            btn.disabled = true;
+            try {
+                const response = await fetch(isEdit ? `${QUESTION_API}/${editingQuestionId}` : QUESTION_API, {
+                    method: isEdit ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(questionData)
+                });
+                const result = await readWriteResult(response);
+                if (!result.ok) { errorBox.textContent = result.message; errorBox.classList.remove('d-none'); return; }
+                bootstrap.Modal.getInstance(document.getElementById('questionModal')).hide();
+                showToast(result.message, 'success');
+                loadQuestions();
+            } catch (error) {
+                console.error('Lỗi API:', error);
+                errorBox.textContent = NETWORK_ERROR;
+                errorBox.classList.remove('d-none');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // D: mở form xác nhận, rồi DELETE /api/questions/{id}
+        function deleteQuestion(id) {
+            const q = allQuestions.find(item => item.id === id);
+            if (!q) return;
+            deletingQuestionId = id;
+            document.getElementById('deleteQuestionId').textContent = '#' + id;
+            document.getElementById('deleteQuestionContent').textContent = q.content || '';
+            document.getElementById('qDeleteError').classList.add('d-none');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('questionDeleteModal')).show();
+        }
+
+        async function confirmDeleteQuestion() {
+            if (deletingQuestionId === null) return;
+            const errorBox = document.getElementById('qDeleteError');
+            const btn = document.getElementById('btnConfirmDeleteQuestion');
+            btn.disabled = true;
+            try {
+                const response = await fetch(`${QUESTION_API}/${deletingQuestionId}`, { method: 'DELETE' });
+                const result = await readWriteResult(response);
+                if (!result.ok) { errorBox.textContent = result.message; errorBox.classList.remove('d-none'); return; }
+                bootstrap.Modal.getInstance(document.getElementById('questionDeleteModal')).hide();
+                showToast(result.message, 'success');
+                deletingQuestionId = null;
+                loadQuestions();
+            } catch (error) {
+                console.error(error);
+                errorBox.textContent = NETWORK_ERROR;
+                errorBox.classList.remove('d-none');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // =====================================================================
+        //  3. QUẢN LÝ ĐỀ THI - GET /api/exams?page=&size=&search= và GET /api/exams/{id}
+        //  Thêm / Sửa / Xóa: back-end chưa có API nên chỉ cập nhật trên giao diện
+        // =====================================================================
+        let examPage = 1, examSize = 5, examSearch = '', examTotal = 0;
+        let examRows = [];             // các dòng đang hiển thị
+        let localNewExams = [];        // đề tạo trên giao diện (mã tạm M1, M2...)
+        let localEdits = {};           // id đề -> dữ liệu đã sửa trên giao diện
+        let localDeleted = new Set();  // id đề đã xóa trên giao diện
+        let editingExamId = null;
+        let deletingExamId = null;
+        let nextLocalId = 1;
+        let examSearchTimer = null;
+
+        function matchesSearch(e) {
+            if (!examSearch) return true;
+            const k = examSearch.toLowerCase();
+            return (e.title || '').toLowerCase().includes(k) || (e.description || '').toLowerCase().includes(k);
+        }
+
         async function loadExams() {
             const tbody = document.getElementById('examTableBody');
             tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Đang tải danh sách đề thi...</td></tr>';
             try {
-                const response = await fetch(EXAM_API);
-                if (!response.ok) throw new Error('HTTP ' + response.status);
-                const exams = await response.json();
-                allExams = exams.map(e => ({ ...e, status: null }));   
+                const pageParams = new URLSearchParams({ page: examPage, size: examSize });
+                const countParams = new URLSearchParams();
+                if (examSearch) { pageParams.set('search', examSearch); countParams.set('search', examSearch); }
+                const [pageRes, countRes] = await Promise.all([
+                    fetch(`${EXAM_API}?${pageParams}`),
+                    fetch(countParams.toString() ? `${EXAM_API}?${countParams}` : EXAM_API)
+                ]);
+                if (!pageRes.ok || !countRes.ok) throw new Error('HTTP ' + (pageRes.ok ? countRes.status : pageRes.status));
+                const pageItems = await pageRes.json();
+                examTotal = (await countRes.json()).length;
+
+                const lastPage = Math.max(1, Math.ceil(examTotal / examSize));
+                if (examPage > lastPage) { examPage = lastPage; return loadExams(); }
+
+                const serverRows = pageItems
+                    .filter(e => !localDeleted.has(e.id))
+                    .map(e => localEdits[e.id] ? { ...e, ...localEdits[e.id], status: 'edited' } : { ...e, status: null });
+                const newRows = examPage === 1 ? localNewExams.filter(matchesSearch) : [];
+                examRows = newRows.concat(serverRows);
                 renderExamTable();
             } catch (error) {
                 console.error('Lỗi tải đề thi:', error);
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Không tải được danh sách đề thi. Kiểm tra Backend đã chạy chưa.</td></tr>';
-                document.getElementById('dashTotalExams').textContent = '?';
+                document.getElementById('examPageInfo').textContent = '';
             }
         }
 
-        // Vẽ bảng từ allExams
         function renderExamTable() {
             const tbody = document.getElementById('examTableBody');
-            document.getElementById('dashTotalExams').textContent = allExams.length;
-            document.getElementById('dashExamNote').textContent = allExams.length ? allExams[0].title : 'Chưa có đề thi';
+            const lastPage = Math.max(1, Math.ceil(examTotal / examSize));
+            document.getElementById('examPageInfo').textContent =
+                'Trang ' + examPage + ' / ' + lastPage + ' · ' + examTotal + ' đề trong CSDL' + (examSearch ? ' khớp "' + examSearch + '"' : '');
+            document.getElementById('examPrev').disabled = examPage <= 1;
+            document.getElementById('examNext').disabled = examPage >= lastPage;
 
-            if (allExams.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Chưa có đề thi nào. Bấm "Tạo đề thi" để thêm.</td></tr>';
+            if (examRows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">${examSearch ? 'Không có đề thi khớp từ khóa.' : 'Chưa có đề thi nào. Bấm "Tạo đề thi" để thêm.'}</td></tr>`;
                 return;
             }
-            tbody.innerHTML = allExams.map(e => {
+            tbody.innerHTML = examRows.map(e => {
                 const badge = e.status ? ' <span class="badge bg-warning text-dark ms-1">Chưa lưu</span>' : '';
                 const idText = typeof e.id === 'number' ? 'ID ' + e.id : e.id;
                 return `
@@ -553,9 +874,31 @@
             }).join('');
         }
 
-        // Tìm đề trong danh sách 
+        function onExamSearch() {
+            clearTimeout(examSearchTimer);
+            examSearchTimer = setTimeout(() => {
+                examSearch = document.getElementById('examSearch').value.trim();
+                examPage = 1;
+                loadExams();
+            }, 300);
+        }
+
+        function goExamPage(step) { examPage = Math.max(1, examPage + step); loadExams(); }
+
+        function changeExamPageSize() {
+            examSize = parseInt(document.getElementById('examPageSize').value, 10);
+            examPage = 1;
+            loadExams();
+        }
+
+        // Tải lại: bỏ mọi thay đổi chưa lưu, lấy lại dữ liệu thật
+        function reloadExams() {
+            localNewExams = []; localEdits = {}; localDeleted = new Set();
+            loadExams();
+        }
+
         function findExam(id) {
-            return allExams.find(e => String(e.id) === String(id));
+            return examRows.find(e => String(e.id) === String(id));
         }
 
         // Đề đã có trong CSDL thì có id dạng số -> mới gọi được API chi tiết
@@ -563,7 +906,7 @@
             return typeof exam.id === 'number';
         }
 
-        // ---------- API 2: GET /api/exams/{id} - xem chi tiết kèm mảng câu hỏi ----------
+        // Xem chi tiết: GET /api/exams/{id}
         async function viewExam(id) {
             const exam = findExam(id);
             if (!exam) return;
@@ -608,7 +951,6 @@
             }
         }
 
-        // ---------- Form THÊM ----------
         function resetExamForm() {
             const form = document.getElementById('examForm');
             form.reset();
@@ -623,7 +965,7 @@
             bootstrap.Modal.getOrCreateInstance(document.getElementById('examModal')).show();
         }
 
-        // Form SỬA
+        // Form SỬA: đề trong CSDL chưa sửa thì lấy bản mới nhất qua GET /api/exams/{id}
         async function editExam(id) {
             const exam = findExam(id);
             if (!exam) return;
@@ -644,14 +986,13 @@
             bootstrap.Modal.getOrCreateInstance(document.getElementById('examModal')).show();
         }
 
-        // ---------- Lưu form THÊM / SỬA ----------
         function handleSaveExam(e) {
             e.preventDefault();
             const form = document.getElementById('examForm');
             const titleInput = document.getElementById('examTitle');
             titleInput.value = titleInput.value.trim();
             form.classList.add('was-validated');
-            if (!form.checkValidity()) return;   
+            if (!form.checkValidity()) return;   // tên trống / thời gian ngoài 1-300 -> dừng
 
             const examData = {
                 title: titleInput.value,
@@ -660,17 +1001,17 @@
             };
 
             if (editingExamId === null) {
-                allExams.push({ id: 'M' + (nextLocalId++), ...examData, createdAt: new Date().toISOString(), status: 'new' });
+                localNewExams.unshift({ id: 'M' + (nextLocalId++), ...examData, createdAt: new Date().toISOString(), status: 'new' });
+                examPage = 1;
+            } else if (isServerExam({ id: editingExamId })) {
+                localEdits[editingExamId] = examData;
             } else {
-                const exam = findExam(editingExamId);
-                Object.assign(exam, examData);
-                if (exam.status !== 'new') exam.status = 'edited';
+                Object.assign(localNewExams.find(x => x.id === editingExamId), examData);
             }
             bootstrap.Modal.getInstance(document.getElementById('examModal')).hide();
-            renderExamTable();
+            loadExams();
         }
 
-        // ---------- Form XÓA ----------
         function deleteExam(id) {
             const exam = findExam(id);
             if (!exam) return;
@@ -681,16 +1022,114 @@
         }
 
         function confirmDeleteExam() {
-            allExams = allExams.filter(e => String(e.id) !== String(deletingExamId));
+            if (isServerExam({ id: deletingExamId })) localDeleted.add(deletingExamId);
+            else localNewExams = localNewExams.filter(e => e.id !== deletingExamId);
             deletingExamId = null;
             bootstrap.Modal.getInstance(document.getElementById('examDeleteModal')).hide();
-            renderExamTable();
+            loadExams();
         }
 
-        // Hàm xóa dòng HTML (Dùng cho bảng tĩnh Đề thi)
-        function deleteTableRow(btn) {
-            if (confirm('Bạn có chắc chắn muốn xóa?')) { btn.closest('tr').remove(); }
+        // =====================================================================
+        //  4. SPEAKING & WRITING - dữ liệu tĩnh theo cấu trúc đề của ETS
+        // =====================================================================
+        const SW_TASKS = {
+            speaking: [
+                {
+                    no: '1–2', name: 'Read a text aloud', vi: 'Đọc to đoạn văn', prep: '45 giây', resp: '45 giây', scale: '0–3',
+                    criteria: 'Phát âm; ngữ điệu và trọng âm',
+                    prompt: 'Thank you for calling Green Valley Fitness Center. Our new yoga, cycling and swimming classes begin next Monday. To register, please visit our front desk, call our booking line, or sign up on our website. Members who register before Friday will receive a free water bottle.',
+                    tip: 'Ngắt hơi sau dấu phẩy, lên giọng ở các ý liệt kê "yoga, cycling and swimming", xuống giọng ở cuối câu.'
+                },
+                {
+                    no: '3–4', name: 'Describe a picture', vi: 'Mô tả tranh', prep: '45 giây', resp: '30 giây', scale: '0–3',
+                    criteria: 'Như câu 1–2, cộng ngữ pháp, từ vựng, tính mạch lạc',
+                    prompt: '(Tranh) Bốn đồng nghiệp ngồi quanh bàn họp; một người đứng chỉ vào biểu đồ trên màn chiếu, trên bàn có máy tính xách tay và cốc cà phê.',
+                    tip: 'Đi từ tổng quát đến chi tiết: "This picture was taken in a meeting room. In the middle, ... On the left, ... In the background, ..."'
+                },
+                {
+                    no: '5–7', name: 'Respond to questions', vi: 'Trả lời câu hỏi', prep: '3 giây mỗi câu', resp: '15 giây (câu 5, 6) · 30 giây (câu 7)', scale: '0–3',
+                    criteria: 'Như câu 3–4, cộng mức độ phù hợp và đầy đủ của nội dung',
+                    prompt: 'Một công ty khảo sát thói quen đọc sách của người dân. (5) How often do you go to a bookstore? (6) What kind of books do you usually buy? (7) Do you prefer buying books online or in a store? Why?',
+                    tip: 'Câu 7 có 30 giây: nêu lựa chọn, đưa 2 lý do, kết bằng một câu tóm lại.'
+                },
+                {
+                    no: '8–10', name: 'Respond to questions using information provided', vi: 'Trả lời dựa trên thông tin cho sẵn', prep: '45 giây đọc thông tin, 3 giây mỗi câu', resp: '15 giây (câu 8, 9) · 30 giây (câu 10)', scale: '0–3',
+                    criteria: 'Như câu 5–7',
+                    prompt: 'Lịch hội thảo "Digital Marketing 2026", thứ Bảy, phòng A2: 9:00 Khai mạc · 9:30 Mạng xã hội cho doanh nghiệp nhỏ · 11:00 Viết nội dung quảng cáo · 13:30 Phân tích số liệu khách hàng (đã hủy). Người gọi hỏi giờ bắt đầu, nội dung buổi sáng và buổi chiều.',
+                    tip: 'Đọc kỹ chi tiết bất thường (buổi bị hủy, đổi phòng) vì câu 9 hoặc 10 thường hỏi vào đó.'
+                },
+                {
+                    no: '11', name: 'Express an opinion', vi: 'Nêu quan điểm', prep: '45 giây', resp: '60 giây', scale: '0–5',
+                    criteria: 'Như câu 8–10, cộng lập luận có lý do và ví dụ',
+                    prompt: 'Some companies allow employees to work from home several days a week. Do you think this is a good policy? Give specific reasons and examples to support your opinion.',
+                    tip: 'Khung 60 giây: quan điểm (10 giây) → lý do 1 + ví dụ (20 giây) → lý do 2 + ví dụ (20 giây) → kết luận (10 giây).'
+                }
+            ],
+            writing: [
+                {
+                    no: '1–5', name: 'Write a sentence based on a picture', vi: 'Viết câu theo tranh', time: '8 phút cho cả 5 câu', req: 'Dùng đủ 2 từ cho sẵn, được đổi dạng từ', scale: '0–3',
+                    criteria: 'Ngữ pháp; câu liên quan đến tranh',
+                    prompt: '(Tranh) Một người phụ nữ đứng chờ ở trạm xe buýt dưới trời mưa. Từ cho sẵn: "umbrella / because".',
+                    tip: 'Câu mẫu: "The woman is holding an umbrella because it is raining." Viết câu đơn, đúng ngữ pháp là đủ điểm.'
+                },
+                {
+                    no: '6–7', name: 'Respond to a written request', vi: 'Trả lời email', time: '10 phút mỗi câu', req: 'Làm đủ các nhiệm vụ đề yêu cầu', scale: '0–4',
+                    criteria: 'Chất lượng và sự đa dạng của câu; từ vựng; cách tổ chức',
+                    prompt: 'Email từ quản lý tòa nhà: "We will renovate the staff kitchen next month. Please reply with two suggestions for new equipment and one question about the schedule."',
+                    tip: 'Đếm số nhiệm vụ trong đề (ở đây: 2 đề xuất + 1 câu hỏi) và trả lời đủ, có lời chào và lời kết.'
+                },
+                {
+                    no: '8', name: 'Write an opinion essay', vi: 'Viết bài luận nêu quan điểm', time: '30 phút', req: 'Bài hiệu quả thường từ 300 từ trở lên', scale: '0–5',
+                    criteria: 'Lý do và ví dụ hỗ trợ quan điểm; ngữ pháp; từ vựng; cách tổ chức',
+                    prompt: 'Do you agree or disagree with the following statement? "It is better to work for a large company than a small one." Give reasons or examples to support your opinion.',
+                    tip: 'Bố cục 4–5 đoạn: mở bài nêu quan điểm, 2–3 đoạn thân mỗi đoạn một lý do có ví dụ, kết bài nhắc lại quan điểm.'
+                }
+            ]
+        };
+
+        function renderSW() {
+            document.getElementById('swSpeakingBody').innerHTML = SW_TASKS.speaking.map((t, i) => `
+                <tr>
+                    <td><code>${t.no}</code></td>
+                    <td><div class="fw-semibold">${t.vi}</div><div class="small text-muted">${t.name}</div></td>
+                    <td class="small">${t.prep}</td>
+                    <td class="small">${t.resp}</td>
+                    <td><span class="badge bg-light text-dark border">${t.scale}</span></td>
+                    <td class="text-end"><button class="btn btn-sm btn-outline-primary py-1 px-2" title="Xem đề mẫu" onclick="viewSW('speaking', ${i})"><i class="bi bi-eye"></i></button></td>
+                </tr>`).join('');
+            document.getElementById('swWritingBody').innerHTML = SW_TASKS.writing.map((t, i) => `
+                <tr>
+                    <td><code>${t.no}</code></td>
+                    <td><div class="fw-semibold">${t.vi}</div><div class="small text-muted">${t.name}</div></td>
+                    <td class="small">${t.time}</td>
+                    <td class="small">${t.req}</td>
+                    <td><span class="badge bg-light text-dark border">${t.scale}</span></td>
+                    <td class="text-end"><button class="btn btn-sm btn-outline-primary py-1 px-2" title="Xem đề mẫu" onclick="viewSW('writing', ${i})"><i class="bi bi-eye"></i></button></td>
+                </tr>`).join('');
         }
-    </script>
-</body>
+
+        function viewSW(skill, index) {
+            const t = SW_TASKS[skill][index];
+            const isSpeaking = skill === 'speaking';
+            document.getElementById('swModalTitle').textContent = (isSpeaking ? 'Speaking' : 'Writing') + ' · Câu ' + t.no + ': ' + t.vi;
+            document.getElementById('swModalMeta').textContent = isSpeaking
+                ? 'Chuẩn bị ' + t.prep + ' · Trả lời ' + t.resp + ' · Thang ' + t.scale
+                : 'Thời gian ' + t.time + ' · Thang ' + t.scale;
+            document.getElementById('swModalBody').innerHTML = `
+                <div class="small text-secondary fw-semibold mb-1">Đề mẫu</div>
+                <div class="border rounded-3 p-3 mb-3 bg-light">${escapeHtml(t.prompt)}</div>
+                <div class="small text-secondary fw-semibold mb-1">Tiêu chí chấm</div>
+                <p class="mb-3">${escapeHtml(t.criteria)}</p>
+                ${isSpeaking ? '' : `<div class="small text-secondary fw-semibold mb-1">Yêu cầu</div><p class="mb-3">${escapeHtml(t.req)}</p>`}
+                <div class="small text-secondary fw-semibold mb-1"><i class="bi bi-lightbulb me-1"></i>Gợi ý làm bài</div>
+                <p class="mb-0">${escapeHtml(t.tip)}</p>`;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('swModal')).show();
+        }
+
+        // Khởi động trang
+        function initAdmin() {
+            renderSW();
+            loadDashboard();
+        }
+    </script></body>
 </html>

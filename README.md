@@ -21,3 +21,6 @@ Hệ thống website hỗ trợ sinh viên ôn luyện và thi thử TOEIC trự
 ## 🔐 Bảo mật mật khẩu
 Mật khẩu tài khoản mới được lưu bằng BCrypt. Với tài khoản đang có mật khẩu plaintext trong cơ sở dữ liệu, mật khẩu sẽ được chuyển sang BCrypt sau lần đăng nhập hợp lệ đầu tiên.
 
+## 📊 API thống kê Dashboard Admin
+- `GET /api/admin/statistics`: trả về tổng số tài khoản (`totalUsers`), câu hỏi (`totalQuestions`) và đề thi (`totalExams`).
+

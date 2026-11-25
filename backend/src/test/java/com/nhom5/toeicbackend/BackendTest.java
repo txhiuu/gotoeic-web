@@ -64,6 +64,55 @@ class BackendTest {
     }
 
     @Test
+    @DisplayName("TC_STATS_01: API thống kê trả số lượng khớp với dữ liệu hiện có")
+    void testThongKeDashboardAdmin() throws Exception {
+        long totalUsers = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM users", Long.class);
+        long totalQuestions = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM questions", Long.class);
+        long totalExams = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM exams", Long.class);
+
+        mockMvc.perform(get("/api/admin/statistics"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalUsers").value(totalUsers))
+                .andExpect(jsonPath("$.totalQuestions").value(totalQuestions))
+                .andExpect(jsonPath("$.totalExams").value(totalExams));
+    }
+
+    @Test
+    @DisplayName("TC_STATS_02: API thống kê cập nhật số lượng khi thêm dữ liệu")
+    void testThongKeDashboardSauKhiThemDuLieu() throws Exception {
+        long totalUsers = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM users", Long.class);
+        long totalQuestions = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM questions", Long.class);
+        long totalExams = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM exams", Long.class);
+
+        String uniqueValue = "DashboardStats-" + System.nanoTime();
+        String email = uniqueValue + "@example.com";
+        String questionContent = uniqueValue + " question";
+
+        try {
+            jdbcTemplate.update(
+                    "INSERT INTO users (email, password, full_name, role, is_active) VALUES (?, ?, ?, 'STUDENT', true)",
+                    email, "test-password", "Dashboard statistics test");
+            jdbcTemplate.update(
+                    "INSERT INTO exams (title, description, duration_minutes) VALUES (?, ?, ?)",
+                    uniqueValue, "Dashboard statistics test", 120);
+            jdbcTemplate.update(
+                    "INSERT INTO questions (exam_id, content, option_a, option_b, option_c, option_d, correct_answer, explanation, part) "
+                            + "VALUES (1, ?, 'A', 'B', 'C', 'D', 'A', 'Test', 'Part 5')",
+                    questionContent);
+
+            mockMvc.perform(get("/api/admin/statistics"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.totalUsers").value(totalUsers + 1))
+                    .andExpect(jsonPath("$.totalQuestions").value(totalQuestions + 1))
+                    .andExpect(jsonPath("$.totalExams").value(totalExams + 1));
+        } finally {
+            jdbcTemplate.update("DELETE FROM questions WHERE content = ?", questionContent);
+            jdbcTemplate.update("DELETE FROM users WHERE email = ?", email);
+            jdbcTemplate.update("DELETE FROM exams WHERE title = ?", uniqueValue);
+        }
+    }
+
+    @Test
     @DisplayName("TC_BE_03: GET /api/exams trả đúng số đề ở trang đầu")
     void testPhanTrangDeThiTrangDau() throws Exception {
         String prefix = taoDuLieuDeThiPhanTrang();

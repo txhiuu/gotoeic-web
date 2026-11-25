@@ -58,10 +58,15 @@ public class NopBaiServiceImpl implements NopBaiService {
         }
 
         List<Question> questions = questionDAO.getCAUHOI(maBaiLam);
-        int totalQuestions = questions.isEmpty() ? 10 : questions.size();
+        if (questions.isEmpty()) {
+            throw new IllegalArgumentException("Đề thi chưa có câu hỏi để chấm điểm.");
+        }
+        int totalQuestions = questions.size();
         int totalCorrect = 0;
+        Map<String, String> correctAnswers = new LinkedHashMap<>();
 
         for (Question q : questions) {
+            correctAnswers.put(String.valueOf(q.getId()), q.getCorrectAnswer());
             String selected = dsDapAnDaChon.get(String.valueOf(q.getId()));
             if (selected != null && selected.trim().equalsIgnoreCase(q.getCorrectAnswer().trim())) {
                 totalCorrect++;
@@ -79,7 +84,7 @@ public class NopBaiServiceImpl implements NopBaiService {
             scoreToeic = 990;
 
         ExamResult result = new ExamResult();
-        result.setUserId(userId > 0 ? userId : 2);
+        result.setUserId(userId);
         result.setExamId(maBaiLam);
         result.setScore(score);
         result.setTotalCorrect(totalCorrect);
@@ -103,6 +108,7 @@ public class NopBaiServiceImpl implements NopBaiService {
         res.put("scoreToeic", scoreToeic);
         res.put("totalCorrect", totalCorrect);
         res.put("totalQuestions", totalQuestions);
+        res.put("correctAnswers", correctAnswers);
         res.put("message", "Nộp bài và chấm điểm thành công!");
 
         return res;

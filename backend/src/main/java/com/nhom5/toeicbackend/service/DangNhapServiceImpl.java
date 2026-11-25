@@ -84,7 +84,25 @@ public class DangNhapServiceImpl implements DangNhapService {
             return resp;
         }
 
-        if (userDAO.registerUser(email.trim(), matKhau, fullName.trim())) {
+        String normalizedEmail = email.trim();
+        String normalizedName = fullName.trim();
+        if (!normalizedEmail.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            resp.put("success", false);
+            resp.put("message", "Email không đúng định dạng.");
+            return resp;
+        }
+        if (matKhau.length() < 6) {
+            resp.put("success", false);
+            resp.put("message", "Mật khẩu phải có ít nhất 6 ký tự.");
+            return resp;
+        }
+        if (normalizedName.length() < 2) {
+            resp.put("success", false);
+            resp.put("message", "Họ tên phải có ít nhất 2 ký tự.");
+            return resp;
+        }
+
+        if (userDAO.registerUser(normalizedEmail, matKhau, normalizedName)) {
             resp.put("success", true);
             resp.put("message", "Đăng ký thành công!");
             return resp;

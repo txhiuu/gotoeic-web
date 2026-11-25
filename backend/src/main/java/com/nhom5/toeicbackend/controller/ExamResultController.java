@@ -21,7 +21,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/api/history")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class ExamResultController {
 
     @Autowired
@@ -35,7 +35,15 @@ public class ExamResultController {
 
     // ===================== GET: danh sách lịch sử =====================
     @GetMapping
-    public ResponseEntity<?> layLichSu(@RequestParam("userId") int userId) {
+    public ResponseEntity<?> layLichSu(
+            @RequestParam("userId") int userId,
+            @SessionAttribute(value = "userId", required = false) Integer authenticatedUserId) {
+        if (authenticatedUserId == null) {
+            return loi(HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập để xem lịch sử làm bài.");
+        }
+        if (authenticatedUserId != userId) {
+            return loi(HttpStatus.FORBIDDEN, "Bạn chỉ có thể xem lịch sử của tài khoản mình.");
+        }
         if (userDAO.findById(userId).isEmpty()) {
             return loi(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng có id = " + userId);
         }
@@ -60,12 +68,20 @@ public class ExamResultController {
 
     // ===================== GET: chi tiết 1 lần làm bài =====================
     @GetMapping("/{id}")
-    public ResponseEntity<?> layChiTiet(@PathVariable("id") int id) {
+    public ResponseEntity<?> layChiTiet(
+            @PathVariable("id") int id,
+            @SessionAttribute(value = "userId", required = false) Integer authenticatedUserId) {
+        if (authenticatedUserId == null) {
+            return loi(HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập để xem lịch sử làm bài.");
+        }
         Optional<ExamResult> opt = examResultDAO.findById(id);
         if (opt.isEmpty()) {
             return loi(HttpStatus.NOT_FOUND, "Không tìm thấy lịch sử làm bài có id = " + id);
         }
         ExamResult r = opt.get();
+        if (!authenticatedUserId.equals(r.getUserId())) {
+            return loi(HttpStatus.FORBIDDEN, "Bạn chỉ có thể xem lịch sử của tài khoản mình.");
+        }
         String title = examDAO.findById(r.getExamId()).map(Exam::getTitle).orElse("Đề thi #" + r.getExamId());
 
         Map<String, Object> body = new LinkedHashMap<>();
@@ -80,7 +96,12 @@ public class ExamResultController {
      * "score" (thang 10) có thể bỏ trống -> tự tính từ totalCorrect / totalQuestions.
      */
     @PostMapping
-    public ResponseEntity<?> luuLichSu(@RequestBody Map<String, Object> req) {
+    public ResponseEntity<?> luuLichSu(
+            @RequestBody Map<String, Object> req,
+            @SessionAttribute(value = "userId", required = false) Integer authenticatedUserId) {
+        if (authenticatedUserId == null) {
+            return loi(HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập để lưu lịch sử làm bài.");
+        }
         Integer userId = soNguyen(req.get("userId"));
         Integer examId = soNguyen(req.get("examId"));
         Integer totalCorrect = soNguyen(req.get("totalCorrect"));
@@ -88,6 +109,9 @@ public class ExamResultController {
 
         if (userId == null || examId == null || totalCorrect == null || totalQuestions == null) {
             return loi(HttpStatus.BAD_REQUEST, "Thiếu hoặc sai kiểu dữ liệu: userId, examId, totalCorrect, totalQuestions là bắt buộc (số nguyên).");
+        }
+        if (!authenticatedUserId.equals(userId)) {
+            return loi(HttpStatus.FORBIDDEN, "Không thể lưu lịch sử thay cho tài khoản khác.");
         }
         if (totalQuestions <= 0 || totalCorrect < 0 || totalCorrect > totalQuestions) {
             return loi(HttpStatus.BAD_REQUEST, "Số câu không hợp lệ: cần 0 <= totalCorrect <= totalQuestions và totalQuestions > 0.");

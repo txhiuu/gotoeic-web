@@ -3,7 +3,7 @@ package com.nhom5.toeicbackend;
 import com.nhom5.toeicbackend.dao.QuestionDAO;
 import com.nhom5.toeicbackend.dao.UserDAO;
 import com.nhom5.toeicbackend.controller.AuthController;
-import com.nhom5.toeicbackend.controller.NopBaiController; // Sửa thành NopBaiController
+import com.nhom5.toeicbackend.service.NopBaiService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ class ToeicBackendApplicationTests {
     private AuthController authController;
 
     @Autowired
-    private NopBaiController nopBaiController; // Sửa thành NopBaiController
+    private NopBaiService nopBaiService;
 
     // TEST CASE 1: Kiểm tra đăng nhập
     @Test
@@ -74,18 +74,7 @@ class ToeicBackendApplicationTests {
         dsDapAn.put("1", "A"); // Câu 1: A
         dsDapAn.put("2", "A"); // Câu 2: A
 
-        Map<String, Object> payload = new HashMap<>();
-        // SỬA LẠI KEY CHO KHỚP VỚI NopBaiController MỚI
-        payload.put("examId", 1); 
-        payload.put("userId", 2);
-        payload.put("answers", dsDapAn); 
-
-        // GỌI NOPBAICONTROLLER THAY VÌ EXAMCONTROLLER
-        ResponseEntity<?> resp = nopBaiController.nopBai(payload);
-        assertEquals(200, resp.getStatusCode().value());
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> body = (Map<String, Object>) resp.getBody();
+        Map<String, Object> body = nopBaiService.nopBai(1, 2, dsDapAn);
         assertNotNull(body);
         assertTrue((Boolean) body.get("success"));
         assertTrue((Integer) body.get("totalCorrect") >= 1, "Số câu đúng phải >= 1");

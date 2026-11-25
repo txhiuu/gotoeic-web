@@ -13,7 +13,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping({"/api/dangnhap", "/api/dang-nhap"})
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class DangNhapController {
 
     @Autowired

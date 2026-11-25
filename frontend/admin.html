@@ -36,7 +36,6 @@
 <body onload="initAdmin()">
 
     <div class="admin-layout">
-        <!-- SIDEBAR -->
         <aside class="sidebar p-3">
             <div class="d-flex align-items-center gap-2 text-white fs-5 fw-bold pb-3 mb-3 border-bottom border-secondary">
                 <span class="badge bg-primary p-2 rounded-3"><i class="bi bi-mortarboard-fill"></i></span>
@@ -52,11 +51,10 @@
                 <button class="side-btn" id="btnImp" onclick="switchAdminTab('imp')"><i class="bi bi-arrow-left-right me-2 fs-6"></i>Nhập / Xuất dữ liệu</button>
             </div>
             <div class="pt-3 border-top border-secondary">
-                <a href="index.html" class="btn btn-outline-light btn-sm w-100 py-2"><i class="bi bi-box-arrow-left me-1"></i>Đăng xuất</a>
+                <button type="button" onclick="logoutAdmin()" class="btn btn-outline-light btn-sm w-100 py-2"><i class="bi bi-box-arrow-left me-1"></i>Đăng xuất</button>
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
         <div class="flex-grow-1 d-flex flex-column" style="overflow-x: hidden;">
             <header class="bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
                 <div>
@@ -64,13 +62,17 @@
                     <small class="text-secondary" id="adminHeaderSub">Tổng quan hệ thống thi và quản trị học viên</small>
                 </div>
                 <div class="d-flex align-items-center gap-3">
-                    <span class="badge bg-success-subtle text-success py-2 px-3 rounded-pill fw-semibold"><i class="bi bi-shield-check me-1"></i>Quản trị viên</span>
+                    <span class="badge bg-secondary-subtle text-secondary py-2 px-3 rounded-pill fw-semibold" id="adminAuthBadge"><i class="bi bi-hourglass-split me-1"></i>Đang kiểm tra phiên...</span>
+                    <button type="button" class="btn btn-sm btn-primary d-none" id="btnOpenAdminLogin" onclick="openAdminLoginModal()"><i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập Admin</button>
                     <img src="https://ui-avatars.com/api/?name=Admin+Toeic&background=0f172a&color=fff" class="rounded-circle border" width="38" height="38" alt="Avatar" />
                 </div>
             </header>
 
             <div class="p-4 flex-grow-1">
-
+                <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2 py-2 mb-3 d-none" id="adminSessionAlert">
+                    <div class="small"><i class="bi bi-shield-lock me-1"></i><strong>Chưa có phiên Quản trị viên:</strong> Bạn cần đăng nhập tài khoản <code>ADMIN</code> để Thêm / Sửa / Xóa câu hỏi và đề thi.</div>
+                    <button type="button" class="btn btn-sm btn-warning fw-semibold" onclick="openAdminLoginModal()">Đăng nhập Admin ngay</button>
+                </div>
                 <!-- 1. TAB BẢNG ĐIỀU KHIỂN -->
                 <div id="viewDash">
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -79,7 +81,7 @@
                     </div>
                     <div class="alert alert-danger small py-2 d-none" id="dashError"></div>
                     <div class="row g-3 mb-4">
-                        <div class="col-md-4"><div class="clean-card p-3 h-100"><div class="small text-secondary fw-semibold">Tổng tài khoản (users)</div><div class="fs-3 fw-bold text-primary mt-1">2</div><div class="small text-muted mt-1">1 Admin, 1 Sinh viên</div></div></div>
+                        <div class="col-md-4"><div class="clean-card p-3 h-100"><div class="small text-secondary fw-semibold">Tổng tài khoản (users)</div><div class="fs-3 fw-bold text-primary mt-1" id="dashTotalUsers">...</div><div class="small text-muted mt-1" id="dashUserNote">Đang tải...</div></div></div>
                         <div class="col-md-4"><div class="clean-card p-3 h-100"><div class="small text-secondary fw-semibold">Ngân hàng câu hỏi</div><div class="fs-3 fw-bold text-success mt-1" id="dashTotalQuestions">...</div><div class="small text-muted mt-1" id="dashQuestionNote">Đang tải...</div></div></div>
                         <div class="col-md-4"><div class="clean-card p-3 h-100"><div class="small text-secondary fw-semibold">Đề thi (exams)</div><div class="fs-3 fw-bold text-dark mt-1" id="dashTotalExams">...</div><div class="small text-muted mt-1 text-truncate" id="dashExamNote">Đang tải...</div></div></div>
                     </div>
@@ -122,7 +124,8 @@
                         </div>
                     </div>
                 </div>
-                <!-- 2. TAB QUẢN LÝ CÂU HỎI (CRUD /api/questions) -->
+
+                <!-- 2. TAB QUẢN LÝ CÂU HỎI -->
                 <div id="viewQuest" class="d-none">
                     <div class="clean-card p-4">
                         <div class="row align-items-center justify-content-between g-3 mb-3">
@@ -153,7 +156,8 @@
                         <div class="small text-muted mt-2" id="questCountInfo"></div>
                     </div>
                 </div>
-                <!-- 3. TAB QUẢN LÝ ĐỀ THI (GET /api/exams?page=&size=&search=) -->
+
+                <!-- 3. TAB QUẢN LÝ ĐỀ THI -->
                 <div id="viewExam" class="d-none">
                     <div class="clean-card p-4">
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -210,7 +214,8 @@
                         </div>
                     </div>
                 </div>
-                                <!-- 4. TAB PART & CHỦ ĐỀ -->
+
+                <!-- 4. TAB PART & CHỦ ĐỀ -->
                 <div id="viewPart" class="d-none">
                     <div class="row g-4">
                         <div class="col-lg-7">
@@ -279,55 +284,148 @@
         </div>
     </div>
 
-<!-- MODAL THÊM/SỬA CÂU HỎI (POST / PUT /api/questions) -->
+    <!-- MODAL THÊM/SỬA CÂU HỎI (HỖ TRỢ 4 KỸ NĂNG + LIVE PREVIEW) -->
     <div class="modal fade" id="questionModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content shadow">
-                <div class="modal-header">
-                    <h6 class="modal-title fw-bold" id="modalQuestionTitle"><i class="bi bi-plus-circle text-primary me-2"></i>Thêm Câu hỏi TOEIC</h6>
+                <div class="modal-header border-bottom">
+                    <div>
+                        <h6 class="modal-title fw-bold mb-0" id="modalQuestionTitle"><i class="bi bi-plus-circle text-primary me-2"></i>Thêm Câu hỏi TOEIC</h6>
+                        <small class="text-muted">Quản trị ngân hàng câu hỏi 4 kỹ năng chuẩn ETS</small>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <form id="addQForm" novalidate onsubmit="handleSaveQuestion(event)">
-                        <div class="row g-3">
-                            <div class="col-md-5">
-                                <label class="form-label small fw-semibold" for="qPart">Part TOEIC *</label>
-                                <select id="qPart" class="form-select" required>
-                                    <option value="Part 1">Part 1: Photographs</option>
-                                    <option value="Part 2">Part 2: Question-Response</option>
-                                    <option value="Part 3">Part 3: Conversations</option>
-                                    <option value="Part 4">Part 4: Talks</option>
-                                    <option value="Part 5" selected>Part 5: Incomplete Sentences</option>
-                                    <option value="Part 6">Part 6: Text Completion</option>
-                                    <option value="Part 7">Part 7: Reading Comprehension</option>
-                                </select>
-                            </div>
-                            <div class="col-md-7">
-                                <label class="form-label small fw-semibold" for="qExam">Thuộc đề thi *</label>
-                                <select id="qExam" class="form-select" required><option value="">-- Chọn đề thi --</option></select>
-                                <div class="invalid-feedback">Hãy chọn đề thi chứa câu hỏi.</div>
-                            </div>
-                            <div class="col-12"><label class="form-label small fw-semibold" for="qContent">Nội dung câu hỏi *</label><textarea id="qContent" class="form-control" rows="2" maxlength="255" required></textarea><div class="invalid-feedback">Nội dung không được để trống.</div></div>
-                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optA">A *</label><input type="text" id="optA" class="form-control" maxlength="255" required /><div class="invalid-feedback">Nhập phương án A.</div></div>
-                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optB">B *</label><input type="text" id="optB" class="form-control" maxlength="255" required /><div class="invalid-feedback">Nhập phương án B.</div></div>
-                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optC">C *</label><input type="text" id="optC" class="form-control" maxlength="255" required /><div class="invalid-feedback">Nhập phương án C.</div></div>
-                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optD">D *</label><input type="text" id="optD" class="form-control" maxlength="255" required /><div class="invalid-feedback">Nhập phương án D.</div></div>
-                            <div class="col-md-4">
-                                <label class="form-label small fw-semibold" for="qCorrect">Đáp án đúng *</label>
-                                <select id="qCorrect" class="form-select" required><option value="">-- Chọn --</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
-                                <div class="invalid-feedback">Chọn đáp án đúng.</div>
-                            </div>
-                            <div class="col-md-8"><label class="form-label small fw-semibold" for="qExpl">Giải thích chi tiết</label><input type="text" id="qExpl" class="form-control" maxlength="255" /></div>
-                            <div class="col-12"><div class="alert alert-danger small py-2 mb-0 d-none" id="qFormError"></div></div>
-                            <div class="col-12 mt-2"><button type="submit" class="btn btn-primary w-100 py-2" id="btnSaveQuestion">Lưu</button></div>
+                    <div class="row g-4">
+                        <!-- Cột Trái: Form nhập liệu -->
+                        <div class="col-lg-7 border-end-lg pe-lg-4">
+                            <form id="addQForm" novalidate onsubmit="handleSaveQuestion(event)">
+                                <!-- Bộ chuyển chế độ câu hỏi -->
+                                <div class="bg-light p-2 rounded-3 mb-3 d-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-white flex-grow-1 shadow-sm fw-semibold active" id="btnModeStd" onclick="switchQuestionMode('standard')">
+                                        <i class="bi bi-ui-radios me-1 text-primary"></i>Trắc nghiệm (Reading/Listening)
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-light flex-grow-1 fw-semibold text-muted" id="btnModeSW" onclick="switchQuestionMode('sw')">
+                                        <i class="bi bi-mic me-1 text-danger"></i>Tự luận (Speaking/Writing)
+                                    </button>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-semibold" for="qPart">Part TOEIC *</label>
+                                        <select id="qPart" class="form-select" required onchange="handlePartChange()">
+                                            <option value="Part 1">Part 1: Photographs</option>
+                                            <option value="Part 2">Part 2: Question-Response</option>
+                                            <option value="Part 3">Part 3: Conversations</option>
+                                            <option value="Part 4">Part 4: Talks</option>
+                                            <option value="Part 5" selected>Part 5: Incomplete Sentences</option>
+                                            <option value="Part 6">Part 6: Text Completion</option>
+                                            <option value="Part 7">Part 7: Reading Comprehension</option>
+                                            <option value="Speaking">Speaking: Kỹ năng Nói</option>
+                                            <option value="Writing">Writing: Kỹ năng Viết</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <label class="form-label small fw-semibold" for="qExam">Thuộc đề thi *</label>
+                                        <select id="qExam" class="form-select" required onchange="updateLivePreview()"><option value="">-- Chọn đề thi --</option></select>
+                                        <div class="invalid-feedback">Hãy chọn đề thi chứa câu hỏi.</div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label small fw-semibold" for="qContent" id="lblContent">Nội dung câu hỏi / Đề bài *</label>
+                                        <textarea id="qContent" class="form-control" rows="3" maxlength="255" required placeholder="Nhập nội dung câu hỏi hoặc tình huống Speaking/Writing..." oninput="updateLivePreview()"></textarea>
+                                        <div class="invalid-feedback">Nội dung không được để trống.</div>
+                                    </div>
+
+                                    <!-- Khối Trắc nghiệm (A, B, C, D) -->
+                                    <div id="boxStandardOptions" class="col-12">
+                                        <div class="row g-3">
+                                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optA">A *</label><input type="text" id="optA" class="form-control" maxlength="255" required oninput="updateLivePreview()" /><div class="invalid-feedback">Nhập phương án A.</div></div>
+                                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optB">B *</label><input type="text" id="optB" class="form-control" maxlength="255" required oninput="updateLivePreview()" /><div class="invalid-feedback">Nhập phương án B.</div></div>
+                                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optC">C *</label><input type="text" id="optC" class="form-control" maxlength="255" required oninput="updateLivePreview()" /><div class="invalid-feedback">Nhập phương án C.</div></div>
+                                            <div class="col-md-6"><label class="form-label small fw-semibold" for="optD">D *</label><input type="text" id="optD" class="form-control" maxlength="255" required oninput="updateLivePreview()" /><div class="invalid-feedback">Nhập phương án D.</div></div>
+                                            <div class="col-md-12">
+                                                <label class="form-label small fw-semibold" for="qCorrect">Đáp án đúng *</label>
+                                                <select id="qCorrect" class="form-select" required onchange="updateLivePreview()">
+                                                    <option value="">-- Chọn đáp án đúng --</option>
+                                                    <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                                                </select>
+                                                <div class="invalid-feedback">Chọn đáp án đúng.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Khối Tự luận Speaking & Writing (Ẩn khi là trắc nghiệm) -->
+                                    <div id="boxSWOptions" class="col-12 d-none">
+                                        <div class="p-3 bg-warning-subtle rounded-3 border border-warning-subtle mb-1">
+                                            <div class="fw-semibold small text-warning-emphasis mb-2"><i class="bi bi-magic me-1"></i>Chế độ Tự luận (Speaking / Writing):</div>
+                                            <div class="small text-muted mb-2">Hệ thống tự động quy chuẩn phương án để khớp cơ sở dữ liệu. Bạn hãy nhập tiêu chí chấm hoặc dàn ý mẫu bên dưới.</div>
+                                            <div class="row g-2">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">Thời gian làm bài / nói</label>
+                                                    <input type="text" id="swTimeNote" class="form-control form-control-sm" maxlength="249" placeholder="VD: Chuẩn bị 45s, Nói 30s" oninput="updateLivePreview()" />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">Từ khóa / Yêu cầu</label>
+                                                    <input type="text" id="swKeywords" class="form-control form-control-sm" maxlength="241" placeholder="VD: Target 300 words hoặc umbrella / because" oninput="updateLivePreview()" />
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label small fw-semibold" for="swSampleAnswer">Bài mẫu tham khảo</label>
+                                                    <textarea id="swSampleAnswer" class="form-control form-control-sm" rows="2" maxlength="247" placeholder="Nhập bài mẫu ngắn hoặc gợi ý trả lời (tối đa 247 ký tự)" oninput="updateLivePreview()"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label small fw-semibold" for="qExpl" id="lblExpl">Giải thích chi tiết / Tiêu chí chấm (Rubric)</label>
+                                        <input type="text" id="qExpl" class="form-control" maxlength="255" placeholder="VD: Cấu trúc request that + V(bare) hoặc Tiêu chí: Phát âm, liên kết..." oninput="updateLivePreview()" />
+                                    </div>
+
+                                    <div class="col-12"><div class="alert alert-danger small py-2 mb-0 d-none" id="qFormError"></div></div>
+                                    <div class="col-12 mt-3"><button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" id="btnSaveQuestion">Lưu vào Database</button></div>
+                                </div>
+                            </form>
                         </div>
-                    </form>
+
+                        <!-- Cột Phải: Xem trước giao diện Học viên (Live Preview) -->
+                        <div class="col-lg-5">
+                            <div class="h-100 d-flex flex-column">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="small fw-bold text-secondary text-uppercase"><i class="bi bi-eye me-1"></i>Xem trước học viên (Live Preview)</span>
+                                    <span class="badge bg-success-subtle text-success">Trực quan</span>
+                                </div>
+                                <div class="clean-card p-3 flex-grow-1 bg-white shadow-sm border" id="adminLivePreviewBox">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-primary-subtle text-primary" id="prevPartBadge">Part 5</span>
+                                        <span class="small text-muted" id="prevExamBadge">Đề thi</span>
+                                    </div>
+                                    <div class="fw-semibold fs-6 mb-3" id="prevContent">Nội dung câu hỏi sẽ hiển thị ở đây...</div>
+                                    <div id="prevSWMeta" class="d-none small mb-3">
+                                        <div class="rounded-2 bg-light p-2 mb-2" id="prevSWTimeRow"><i class="bi bi-clock me-1"></i><span id="prevSWTime"></span></div>
+                                        <div class="rounded-2 bg-light p-2 mb-2" id="prevSWKeywordsRow"><i class="bi bi-bullseye me-1"></i><span id="prevSWKeywords"></span></div>
+                                        <div class="rounded-2 bg-light p-2" id="prevSWSampleRow"><i class="bi bi-chat-square-text me-1"></i><span id="prevSWSample"></span></div>
+                                    </div>
+                                    <div id="prevChoicesBox" class="mb-3">
+                                        <div class="p-2 border rounded-2 mb-2 small d-flex align-items-center gap-2" id="prevOptA"><span class="badge bg-light text-dark">A</span> <span id="prevTextA">Phương án A</span></div>
+                                        <div class="p-2 border rounded-2 mb-2 small d-flex align-items-center gap-2" id="prevOptB"><span class="badge bg-light text-dark">B</span> <span id="prevTextB">Phương án B</span></div>
+                                        <div class="p-2 border rounded-2 mb-2 small d-flex align-items-center gap-2" id="prevOptC"><span class="badge bg-light text-dark">C</span> <span id="prevTextC">Phương án C</span></div>
+                                        <div class="p-2 border rounded-2 mb-2 small d-flex align-items-center gap-2" id="prevOptD"><span class="badge bg-light text-dark">D</span> <span id="prevTextD">Phương án D</span></div>
+                                    </div>
+                                    <div class="p-2 bg-light border-start border-3 border-primary rounded small" id="prevExplBox">
+                                        <div class="fw-semibold text-primary mb-1"><i class="bi bi-lightbulb me-1"></i>Giải thích / Tiêu chí:</div>
+                                        <div id="prevExplText" class="text-secondary">Chưa có giải thích.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Form xác nhận XÓA câu hỏi (DELETE /api/questions/{id}) -->
+    <!-- Modal Xóa Câu Hỏi -->
     <div class="modal fade" id="questionDeleteModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content shadow">
@@ -348,7 +446,7 @@
         </div>
     </div>
 
-    <!-- XEM ĐỀ MẪU SPEAKING / WRITING -->
+    <!-- Modal Xem Đề Mẫu SW -->
     <div class="modal fade" id="swModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content shadow">
@@ -364,7 +462,7 @@
         </div>
     </div>
 
-    <!-- Thông báo nhỏ góc phải -->
+    <!-- Toast -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="adminToast" class="toast align-items-center border-0" role="status" aria-live="polite" aria-atomic="true">
             <div class="d-flex">
@@ -373,8 +471,8 @@
             </div>
         </div>
     </div>
-        <!-- CÁC MODAL PHỤ (Đề thi, Chủ đề, Tài khoản) -->
-        <!-- Form THÊM / SỬA đề thi (dùng chung) -->
+
+    <!-- Modal Exam -->
     <div class="modal fade" id="examModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content shadow">
@@ -398,6 +496,7 @@
                             <input type="number" id="examDuration" class="form-control" min="1" max="300" value="120" required />
                             <div class="invalid-feedback">Thời gian phải từ 1 đến 300 phút.</div>
                         </div>
+                        <div class="alert alert-danger small py-2 mb-3 d-none" id="examFormError"></div>
                         <button type="submit" class="btn btn-primary w-100 py-2" id="btnSaveExam">Tạo đề thi</button>
                     </form>
                 </div>
@@ -405,7 +504,7 @@
         </div>
     </div>
 
-    <!-- Form xác nhận XÓA đề thi -->
+    <!-- Modal Xóa Exam -->
     <div class="modal fade" id="examDeleteModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content shadow">
@@ -416,18 +515,19 @@
                 <div class="modal-body p-4">
                     <p class="mb-2">Bạn chắc chắn muốn xóa đề <b id="deleteExamName"></b> (<code id="deleteExamId"></code>)?</p>
                     <div class="alert alert-warning small py-2 mb-0">
-                        Đề thi sẽ bị xóa khỏi danh sách.
+                        Đề thi và các câu hỏi thuộc đề này sẽ bị xóa khỏi CSDL.
                     </div>
+                    <div class="alert alert-danger small py-2 mt-3 mb-0 d-none" id="examDeleteError"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-danger" onclick="confirmDeleteExam()">Xóa đề thi</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmDeleteExam" onclick="confirmDeleteExam()">Xóa đề thi</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- XEM CHI TIẾT đề thi kèm mảng câu hỏi (GET /api/exams/{id}) -->
+    <!-- Modal Chi tiết Exam -->
     <div class="modal fade" id="examDetailModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content shadow">
@@ -448,22 +548,49 @@
     <div class="modal fade" id="topicModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content p-4 text-center">Tính năng Thêm chủ đề đang phát triển...</div></div></div>
     <div class="modal fade" id="userModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content p-4 text-center">Tính năng Thêm user đang phát triển...</div></div></div>
 
+    <!-- Modal Đăng nhập Admin -->
+    <div class="modal fade" id="adminLoginModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold"><i class="bi bi-shield-lock text-primary me-2"></i>Đăng nhập Quản trị viên</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-secondary mb-3">Đăng nhập tài khoản Admin để cấp quyền Thêm / Sửa / Xóa câu hỏi và đề thi.</p>
+                    <form id="adminLoginForm" novalidate onsubmit="handleAdminLogin(event)">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" for="adminLoginEmail">Email *</label>
+                            <input type="email" id="adminLoginEmail" class="form-control" value="admin@gmail.com" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" for="adminLoginPassword">Mật khẩu *</label>
+                            <input type="password" id="adminLoginPassword" class="form-control" placeholder="Nhập mật khẩu Admin..." required />
+                        </div>
+                        <div class="alert alert-danger small py-2 mb-3 d-none" id="adminLoginError"></div>
+                        <button type="submit" class="btn btn-primary w-100 py-2" id="btnAdminLoginSubmit">Đăng nhập</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-        // =====================================================================
-        //  ĐỊA CHỈ API (Back-end Spring Boot chạy ở cổng 8080)
-        //  - Câu hỏi : GET / POST /api/questions, PUT / DELETE /api/questions/{id}
-        //  - Đề thi  : GET /api/exams?page=&size=&search=, GET /api/exams/{id}
-        // =====================================================================
-        const API_BASE = 'http://localhost:8080';
+        const API_BASE = location.port === '8080'
+            ? ''
+            : (location.protocol === 'file:' ? 'http://localhost:8080' : `${location.protocol}//${location.hostname}:8080`);
         const QUESTION_API = API_BASE + '/api/questions';
         const EXAM_API = API_BASE + '/api/exams';
+        const AUTH_API = API_BASE + '/api/auth';
+        const STATS_API = API_BASE + '/api/admin/statistics';
         const PARTS = ['Part 1', 'Part 2', 'Part 3', 'Part 4', 'Part 5', 'Part 6', 'Part 7'];
 
-        let allQuestions = [];      // dữ liệu từ GET /api/questions
-        let examOptions = [];       // toàn bộ đề (GET /api/exams không phân trang) cho ô chọn đề + Dashboard
+        let allQuestions = [];
+        let examOptions = [];
         let editingQuestionId = null;
         let deletingQuestionId = null;
+        let isAdminAuthenticated = false;
 
         const TABS = {
             dash: { title: 'Bảng điều khiển & Thống kê', sub: 'Tổng quan hệ thống thi và quản trị học viên' },
@@ -493,8 +620,6 @@
             if (tabKey === 'exam') loadExams();
         }
 
-        // ---------- Tiện ích chung ----------
-        // Chống XSS: escape dữ liệu trước khi chèn vào HTML
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text == null ? '' : String(text);
@@ -514,23 +639,124 @@
             bootstrap.Toast.getOrCreateInstance(toast, { delay: 3000 }).show();
         }
 
-        // Đọc phản hồi của API ghi dữ liệu câu hỏi.
-        // Back-end trả về CHUỖI ("Thêm thành công" / "Thêm thất bại") với mã 200, nên phải đọc nội dung.
+        function setAdminSessionState(authenticated, email) {
+            isAdminAuthenticated = authenticated;
+            const badge = document.getElementById('adminAuthBadge');
+            const loginBtn = document.getElementById('btnOpenAdminLogin');
+            const alertBanner = document.getElementById('adminSessionAlert');
+            if (authenticated) {
+                badge.className = 'badge bg-success-subtle text-success py-2 px-3 rounded-pill fw-semibold';
+                badge.innerHTML = '<i class="bi bi-shield-check me-1"></i>' + escapeHtml(email || 'Quản trị viên');
+                loginBtn.classList.add('d-none');
+                alertBanner.classList.add('d-none');
+            } else {
+                badge.className = 'badge bg-warning-subtle text-warning-emphasis py-2 px-3 rounded-pill fw-semibold';
+                badge.innerHTML = '<i class="bi bi-shield-exclamation me-1"></i>Chưa đăng nhập Admin';
+                loginBtn.classList.remove('d-none');
+                alertBanner.classList.remove('d-none');
+            }
+        }
+
+        async function checkAdminSession(openModalIfUnauth = false) {
+            try {
+                const res = await fetch(`${AUTH_API}/me`, { credentials: 'include' });
+                if (!res.ok) {
+                    setAdminSessionState(false);
+                    if (openModalIfUnauth) openAdminLoginModal();
+                    return false;
+                }
+                const data = await res.json();
+                if (data.authenticated && String(data.role || '').toUpperCase() === 'ADMIN') {
+                    setAdminSessionState(true, data.email);
+                    return true;
+                }
+                setAdminSessionState(false);
+                if (openModalIfUnauth) openAdminLoginModal();
+                return false;
+            } catch (e) {
+                setAdminSessionState(false);
+                return false;
+            }
+        }
+
+        function openAdminLoginModal() {
+            document.getElementById('adminLoginError').classList.add('d-none');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('adminLoginModal')).show();
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('adminLoginEmail').value.trim();
+            const password = document.getElementById('adminLoginPassword').value;
+            const errBox = document.getElementById('adminLoginError');
+            const btn = document.getElementById('btnAdminLoginSubmit');
+            errBox.classList.add('d-none');
+            if (!email || !password) {
+                errBox.textContent = 'Vui lòng nhập đầy đủ email và mật khẩu.';
+                errBox.classList.remove('d-none');
+                return;
+            }
+            btn.disabled = true;
+            try {
+                const res = await fetch(`${AUTH_API}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password, matKhau: password })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    errBox.textContent = data.message || 'Đăng nhập thất bại!';
+                    errBox.classList.remove('d-none');
+                    return;
+                }
+                const role = String(data.role || data.vaiTro || '').toUpperCase();
+                if (role !== 'ADMIN') {
+                    await fetch(`${AUTH_API}/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
+                    errBox.textContent = 'Tài khoản này không có quyền Quản trị viên (ADMIN).';
+                    errBox.classList.remove('d-none');
+                    return;
+                }
+                setAdminSessionState(true, email);
+                bootstrap.Modal.getInstance(document.getElementById('adminLoginModal')).hide();
+                showToast('Đăng nhập Admin thành công!', 'success');
+                loadDashboard();
+            } catch (err) {
+                errBox.textContent = 'Không kết nối được tới Backend (port 8080).';
+                errBox.classList.remove('d-none');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function logoutAdmin() {
+            await fetch(`${AUTH_API}/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
+            window.location.href = 'index.html';
+        }
+
         async function readWriteResult(response) {
             const text = (await response.text()).trim();
-            if (response.status === 403) {
-                return { ok: false, message: 'Bị từ chối (403): chỉ Quản trị viên đã đăng nhập mới được sửa / xóa câu hỏi.' };
+            let parsed = null;
+            if (text && (text.startsWith('{') || text.startsWith('['))) {
+                try { parsed = JSON.parse(text); } catch (_) { parsed = null; }
             }
-            if (!response.ok) return { ok: false, message: 'Lỗi ' + response.status + (text ? ': ' + text : '') };
-            if (/thất bại/i.test(text)) return { ok: false, message: text };
-            return { ok: true, message: text || 'Thành công' };
+            const msg = parsed ? (parsed.message || parsed.error || text) : text;
+
+            if (response.status === 403) {
+                setAdminSessionState(false);
+                return { ok: false, status: 403, message: 'Bị từ chối (403): chỉ Quản trị viên đã đăng nhập mới được thêm / sửa / xóa dữ liệu. Vui lòng đăng nhập Admin!' };
+            }
+            if (!response.ok) return { ok: false, status: response.status, message: msg || ('Lỗi ' + response.status) };
+            if (parsed && parsed.success === false) return { ok: false, status: response.status, message: msg || 'Thao tác thất bại' };
+            if (/thất bại/i.test(msg)) return { ok: false, status: response.status, message: msg };
+            return { ok: true, status: response.status, message: msg || 'Thành công' };
         }
 
         const NETWORK_ERROR = 'Không gọi được API. Kiểm tra Backend đã chạy chưa; nếu đang sửa / xóa, yêu cầu có thể bị chặn bởi phân quyền Quản trị viên.';
 
-        // Lấy toàn bộ đề thi (không phân trang) cho ô chọn đề và Dashboard
+        // BỔ SUNG CREDENTIALS
         async function fetchAllExams() {
-            const response = await fetch(EXAM_API);
+            const response = await fetch(EXAM_API, { credentials: 'include' });
             if (!response.ok) throw new Error('HTTP ' + response.status);
             examOptions = await response.json();
             fillExamSelects();
@@ -553,17 +779,22 @@
                 examOptions.map(e => `<option value="${e.id}">ID ${e.id} · ${escapeHtml(e.title)}</option>`).join('');
         }
 
-        // =====================================================================
-        //  1. BẢNG ĐIỀU KHIỂN - số liệu thật từ GET /api/questions + GET /api/exams
-        // =====================================================================
         async function loadDashboard() {
             const errorBox = document.getElementById('dashError');
             errorBox.classList.add('d-none');
-            const [qRes, eRes] = await Promise.allSettled([
-                fetch(QUESTION_API).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
-                fetchAllExams()
+            const [qRes, eRes, sRes] = await Promise.allSettled([
+                fetch(QUESTION_API, { credentials: 'include' }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
+                fetchAllExams(),
+                fetch(STATS_API, { credentials: 'include' }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
             ]);
             if (qRes.status === 'fulfilled') allQuestions = qRes.value;
+            if (sRes.status === 'fulfilled' && sRes.value) {
+                document.getElementById('dashTotalUsers').textContent = sRes.value.totalUsers ?? '?';
+                document.getElementById('dashUserNote').textContent = 'Tổng tài khoản trong CSDL';
+            } else {
+                document.getElementById('dashTotalUsers').textContent = '?';
+                document.getElementById('dashUserNote').textContent = 'Không tải được';
+            }
             const failed = [];
             if (qRes.status === 'rejected') failed.push('GET /api/questions');
             if (eRes.status === 'rejected') failed.push('GET /api/exams');
@@ -578,21 +809,18 @@
             const qs = allQuestions, exams = examOptions;
             const setText = (id, text) => { document.getElementById(id).textContent = text; };
 
-            // Ô 1: tổng câu hỏi
             if (hasQuestions) {
                 const withExpl = qs.filter(q => q.explanation && q.explanation.trim()).length;
                 setText('dashTotalQuestions', qs.length);
                 setText('dashQuestionNote', withExpl + ' câu có lời giải');
             } else { setText('dashTotalQuestions', '?'); setText('dashQuestionNote', 'Không tải được'); }
 
-            // Ô 2: tổng đề thi
             if (hasExams) {
                 setText('dashTotalExams', exams.length);
                 const newest = exams.slice().sort((a, b) => b.id - a.id)[0];
                 setText('dashExamNote', newest ? 'Mới nhất: ' + newest.title : 'Chưa có đề thi');
             } else { setText('dashTotalExams', '?'); setText('dashExamNote', 'Không tải được'); }
 
-            // Ô 3 + biểu đồ: câu hỏi theo Part
             const partCount = {};
             PARTS.forEach(p => partCount[p] = 0);
             let otherPart = 0;
@@ -613,7 +841,6 @@
                 document.getElementById('dashPartBars').innerHTML = '<div class="text-danger small">Không tải được câu hỏi.</div>';
             }
 
-            // Ô 4 + danh sách: câu hỏi theo đề thi
             if (hasQuestions && hasExams) {
                 const perExam = exams.map(e => ({ exam: e, n: qs.filter(q => q.examId === e.id).length }));
                 const inExams = perExam.reduce((s, x) => s + x.n, 0);
@@ -630,13 +857,11 @@
             setText('dashUpdated', 'Cập nhật lúc ' + new Date().toLocaleTimeString('vi-VN'));
         }
 
-        // =====================================================================
-        //  2. NGÂN HÀNG CÂU HỎI - CRUD /api/questions
-        // =====================================================================
         async function loadQuestions() {
             const tbody = document.getElementById('qTableBody');
             try {
-                const [response] = await Promise.all([fetch(QUESTION_API), fetchAllExams().catch(() => {})]);
+                // BỔ SUNG CREDENTIALS
+                const [response] = await Promise.all([fetch(QUESTION_API, { credentials: 'include' }), fetchAllExams().catch(() => {})]);
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 allQuestions = await response.json();
                 renderQuestionTable();
@@ -681,6 +906,66 @@
             form.reset();
             form.classList.remove('was-validated');
             document.getElementById('qFormError').classList.add('d-none');
+            switchQuestionMode('standard', false);
+            updateLivePreview();
+        }
+
+        function switchQuestionMode(mode, adjustPart = true) {
+            const isSW = mode === 'sw';
+            const part = document.getElementById('qPart');
+            if (adjustPart && isSW && !['Speaking', 'Writing'].includes(part.value)) part.value = 'Speaking';
+            if (adjustPart && !isSW && ['Speaking', 'Writing'].includes(part.value)) part.value = 'Part 5';
+
+            document.getElementById('boxStandardOptions').classList.toggle('d-none', isSW);
+            document.getElementById('boxSWOptions').classList.toggle('d-none', !isSW);
+            document.getElementById('btnModeStd').classList.toggle('active', !isSW);
+            document.getElementById('btnModeStd').classList.toggle('btn-white', !isSW);
+            document.getElementById('btnModeStd').classList.toggle('btn-light', isSW);
+            document.getElementById('btnModeStd').classList.toggle('text-muted', isSW);
+            document.getElementById('btnModeSW').classList.toggle('active', isSW);
+            document.getElementById('btnModeSW').classList.toggle('btn-white', isSW);
+            document.getElementById('btnModeSW').classList.toggle('btn-light', !isSW);
+            document.getElementById('btnModeSW').classList.toggle('text-muted', !isSW);
+            ['optA', 'optB', 'optC', 'optD', 'qCorrect'].forEach(id => {
+                document.getElementById(id).required = !isSW;
+            });
+            document.getElementById('lblExpl').textContent = isSW ? 'Tiêu chí chấm (Rubric)' : 'Giải thích chi tiết / Tiêu chí chấm (Rubric)';
+            updateLivePreview();
+        }
+
+        function handlePartChange() {
+            switchQuestionMode(['Speaking', 'Writing'].includes(document.getElementById('qPart').value) ? 'sw' : 'standard', false);
+        }
+
+        function updateLivePreview() {
+            const isSW = ['Speaking', 'Writing'].includes(document.getElementById('qPart').value);
+            const text = (id, fallback = '') => document.getElementById(id).value.trim() || fallback;
+            document.getElementById('prevPartBadge').textContent = text('qPart', 'Part 5');
+            const examSelect = document.getElementById('qExam');
+            document.getElementById('prevExamBadge').textContent = examSelect.selectedOptions[0]?.textContent || 'Đề thi';
+            document.getElementById('prevContent').textContent = text('qContent', 'Nội dung câu hỏi sẽ hiển thị ở đây...');
+            document.getElementById('prevChoicesBox').classList.toggle('d-none', isSW);
+            document.getElementById('prevSWMeta').classList.toggle('d-none', !isSW);
+            document.getElementById('prevExplBox').classList.toggle('d-none', !text('qExpl'));
+            document.getElementById('prevExplText').textContent = text('qExpl', 'Chưa có giải thích.');
+
+            if (isSW) {
+                const rows = [
+                    ['swTimeNote', 'prevSWTimeRow', 'prevSWTime'],
+                    ['swKeywords', 'prevSWKeywordsRow', 'prevSWKeywords'],
+                    ['swSampleAnswer', 'prevSWSampleRow', 'prevSWSample']
+                ];
+                rows.forEach(([inputId, rowId, valueId]) => {
+                    const value = text(inputId);
+                    document.getElementById(valueId).textContent = value;
+                    document.getElementById(rowId).classList.toggle('d-none', !value);
+                });
+            } else {
+                ['A', 'B', 'C', 'D'].forEach(letter => {
+                    document.getElementById('prevText' + letter).textContent = text('opt' + letter, 'Phương án ' + letter);
+                    document.getElementById('prevOpt' + letter).classList.toggle('border-primary', document.getElementById('qCorrect').value === letter);
+                });
+            }
         }
 
         function openAddModal() {
@@ -688,12 +973,12 @@
             resetQuestionForm();
             const examFilter = document.getElementById('questExamFilter').value;
             if (examFilter !== 'all') document.getElementById('qExam').value = examFilter;
+            updateLivePreview();
             document.getElementById('modalQuestionTitle').innerHTML = '<i class="bi bi-plus-circle text-primary me-2"></i>Thêm Câu hỏi TOEIC';
             document.getElementById('btnSaveQuestion').innerText = 'Lưu vào Database';
             bootstrap.Modal.getOrCreateInstance(document.getElementById('questionModal')).show();
         }
 
-        // Dữ liệu sửa lấy từ danh sách đã tải (GET /api/questions/{id} đang bị phân quyền chặn)
         function editQuestion(id) {
             const q = allQuestions.find(item => item.id === id);
             if (!q) return;
@@ -708,31 +993,41 @@
             document.getElementById('optD').value = q.optionD || '';
             document.getElementById('qCorrect').value = q.correctAnswer || '';
             document.getElementById('qExpl').value = q.explanation || '';
+            const isSW = ['Speaking', 'Writing'].includes(q.part);
+            if (isSW) {
+                const readMeta = (value, label) => (value || '').startsWith(label) ? value.slice(label.length).trim() : '';
+                document.getElementById('swSampleAnswer').value = readMeta(q.optionA, 'Sample:');
+                document.getElementById('swTimeNote').value = readMeta(q.optionB, 'Time:');
+                document.getElementById('swKeywords').value = readMeta(q.optionC, 'Requirements:');
+                switchQuestionMode('sw', false);
+            } else {
+                switchQuestionMode('standard', false);
+            }
             document.getElementById('modalQuestionTitle').innerHTML = '<i class="bi bi-pencil-square text-warning me-2"></i>Cập nhật Câu hỏi #' + id;
             document.getElementById('btnSaveQuestion').innerText = 'Cập nhật thay đổi';
             bootstrap.Modal.getOrCreateInstance(document.getElementById('questionModal')).show();
         }
 
-        // C / U: POST /api/questions hoặc PUT /api/questions/{id}
         async function handleSaveQuestion(e) {
             e.preventDefault();
             const form = document.getElementById('addQForm');
             const errorBox = document.getElementById('qFormError');
             errorBox.classList.add('d-none');
-            ['qContent', 'optA', 'optB', 'optC', 'optD', 'qExpl'].forEach(id => {
+            ['qContent', 'optA', 'optB', 'optC', 'optD', 'qExpl', 'swTimeNote', 'swKeywords', 'swSampleAnswer'].forEach(id => {
                 const el = document.getElementById(id); el.value = el.value.trim();
             });
             form.classList.add('was-validated');
             if (!form.checkValidity()) return;
 
+            const isSW = ['Speaking', 'Writing'].includes(document.getElementById('qPart').value);
             const questionData = {
                 examId: parseInt(document.getElementById('qExam').value, 10),
                 content: document.getElementById('qContent').value,
-                optionA: document.getElementById('optA').value,
-                optionB: document.getElementById('optB').value,
-                optionC: document.getElementById('optC').value,
-                optionD: document.getElementById('optD').value,
-                correctAnswer: document.getElementById('qCorrect').value,
+                optionA: isSW ? `Sample: ${document.getElementById('swSampleAnswer').value || 'Chưa có bài mẫu'}` : document.getElementById('optA').value,
+                optionB: isSW ? `Time: ${document.getElementById('swTimeNote').value || 'Theo hướng dẫn đề thi'}` : document.getElementById('optB').value,
+                optionC: isSW ? `Requirements: ${document.getElementById('swKeywords').value || 'Không có yêu cầu bổ sung'}` : document.getElementById('optC').value,
+                optionD: isSW ? 'Open response' : document.getElementById('optD').value,
+                correctAnswer: isSW ? 'A' : document.getElementById('qCorrect').value,
                 explanation: document.getElementById('qExpl').value,
                 part: document.getElementById('qPart').value
             };
@@ -740,9 +1035,11 @@
             const btn = document.getElementById('btnSaveQuestion');
             btn.disabled = true;
             try {
+                // BỔ SUNG CREDENTIALS
                 const response = await fetch(isEdit ? `${QUESTION_API}/${editingQuestionId}` : QUESTION_API, {
                     method: isEdit ? 'PUT' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(questionData)
                 });
                 const result = await readWriteResult(response);
@@ -759,7 +1056,6 @@
             }
         }
 
-        // D: mở form xác nhận, rồi DELETE /api/questions/{id}
         function deleteQuestion(id) {
             const q = allQuestions.find(item => item.id === id);
             if (!q) return;
@@ -776,7 +1072,11 @@
             const btn = document.getElementById('btnConfirmDeleteQuestion');
             btn.disabled = true;
             try {
-                const response = await fetch(`${QUESTION_API}/${deletingQuestionId}`, { method: 'DELETE' });
+                // BỔ SUNG CREDENTIALS
+                const response = await fetch(`${QUESTION_API}/${deletingQuestionId}`, { 
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
                 const result = await readWriteResult(response);
                 if (!result.ok) { errorBox.textContent = result.message; errorBox.classList.remove('d-none'); return; }
                 bootstrap.Modal.getInstance(document.getElementById('questionDeleteModal')).hide();
@@ -792,25 +1092,11 @@
             }
         }
 
-        // =====================================================================
-        //  3. QUẢN LÝ ĐỀ THI - GET /api/exams?page=&size=&search= và GET /api/exams/{id}
-        //  Thêm / Sửa / Xóa: back-end chưa có API nên chỉ cập nhật trên giao diện
-        // =====================================================================
         let examPage = 1, examSize = 5, examSearch = '', examTotal = 0;
-        let examRows = [];             // các dòng đang hiển thị
-        let localNewExams = [];        // đề tạo trên giao diện (mã tạm M1, M2...)
-        let localEdits = {};           // id đề -> dữ liệu đã sửa trên giao diện
-        let localDeleted = new Set();  // id đề đã xóa trên giao diện
+        let examRows = [];
         let editingExamId = null;
         let deletingExamId = null;
-        let nextLocalId = 1;
         let examSearchTimer = null;
-
-        function matchesSearch(e) {
-            if (!examSearch) return true;
-            const k = examSearch.toLowerCase();
-            return (e.title || '').toLowerCase().includes(k) || (e.description || '').toLowerCase().includes(k);
-        }
 
         async function loadExams() {
             const tbody = document.getElementById('examTableBody');
@@ -820,21 +1106,15 @@
                 const countParams = new URLSearchParams();
                 if (examSearch) { pageParams.set('search', examSearch); countParams.set('search', examSearch); }
                 const [pageRes, countRes] = await Promise.all([
-                    fetch(`${EXAM_API}?${pageParams}`),
-                    fetch(countParams.toString() ? `${EXAM_API}?${countParams}` : EXAM_API)
+                    fetch(`${EXAM_API}?${pageParams}`, { credentials: 'include' }),
+                    fetch(countParams.toString() ? `${EXAM_API}?${countParams}` : EXAM_API, { credentials: 'include' })
                 ]);
                 if (!pageRes.ok || !countRes.ok) throw new Error('HTTP ' + (pageRes.ok ? countRes.status : pageRes.status));
-                const pageItems = await pageRes.json();
+                examRows = await pageRes.json();
                 examTotal = (await countRes.json()).length;
 
                 const lastPage = Math.max(1, Math.ceil(examTotal / examSize));
                 if (examPage > lastPage) { examPage = lastPage; return loadExams(); }
-
-                const serverRows = pageItems
-                    .filter(e => !localDeleted.has(e.id))
-                    .map(e => localEdits[e.id] ? { ...e, ...localEdits[e.id], status: 'edited' } : { ...e, status: null });
-                const newRows = examPage === 1 ? localNewExams.filter(matchesSearch) : [];
-                examRows = newRows.concat(serverRows);
                 renderExamTable();
             } catch (error) {
                 console.error('Lỗi tải đề thi:', error);
@@ -855,23 +1135,19 @@
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">${examSearch ? 'Không có đề thi khớp từ khóa.' : 'Chưa có đề thi nào. Bấm "Tạo đề thi" để thêm.'}</td></tr>`;
                 return;
             }
-            tbody.innerHTML = examRows.map(e => {
-                const badge = e.status ? ' <span class="badge bg-warning text-dark ms-1">Chưa lưu</span>' : '';
-                const idText = typeof e.id === 'number' ? 'ID ' + e.id : e.id;
-                return `
+            tbody.innerHTML = examRows.map(e => `
                     <tr>
-                        <td><code>${escapeHtml(idText)}</code></td>
-                        <td class="fw-semibold">${escapeHtml(e.title)}${badge}</td>
+                        <td><code>ID ${escapeHtml(e.id)}</code></td>
+                        <td class="fw-semibold">${escapeHtml(e.title)}</td>
                         <td class="small text-muted">${escapeHtml(e.description || '—')}</td>
                         <td>${e.durationMinutes} phút</td>
                         <td class="small">${formatDate(e.createdAt)}</td>
                         <td class="text-end text-nowrap">
-                            <button class="btn btn-sm btn-outline-primary py-1 px-2" title="Xem chi tiết" onclick="viewExam('${e.id}')"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-sm btn-outline-secondary py-1 px-2" title="Sửa" onclick="editExam('${e.id}')"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-outline-danger py-1 px-2" title="Xóa" onclick="deleteExam('${e.id}')"><i class="bi bi-trash"></i></button>
+                            <button class="btn btn-sm btn-outline-primary py-1 px-2" title="Xem chi tiết" onclick="viewExam(${e.id})"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary py-1 px-2" title="Sửa" onclick="editExam(${e.id})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger py-1 px-2" title="Xóa" onclick="deleteExam(${e.id})"><i class="bi bi-trash"></i></button>
                         </td>
-                    </tr>`;
-            }).join('');
+                    </tr>`).join('');
         }
 
         function onExamSearch() {
@@ -891,9 +1167,7 @@
             loadExams();
         }
 
-        // Tải lại: bỏ mọi thay đổi chưa lưu, lấy lại dữ liệu thật
         function reloadExams() {
-            localNewExams = []; localEdits = {}; localDeleted = new Set();
             loadExams();
         }
 
@@ -901,12 +1175,6 @@
             return examRows.find(e => String(e.id) === String(id));
         }
 
-        // Đề đã có trong CSDL thì có id dạng số -> mới gọi được API chi tiết
-        function isServerExam(exam) {
-            return typeof exam.id === 'number';
-        }
-
-        // Xem chi tiết: GET /api/exams/{id}
         async function viewExam(id) {
             const exam = findExam(id);
             if (!exam) return;
@@ -917,12 +1185,8 @@
             box.innerHTML = '<div class="text-muted small">Đang tải câu hỏi...</div>';
             bootstrap.Modal.getOrCreateInstance(document.getElementById('examDetailModal')).show();
 
-            if (!isServerExam(exam)) {
-                box.innerHTML = '<div class="text-muted small">Đề mới tạo trên giao diện, chưa có câu hỏi.</div>';
-                return;
-            }
             try {
-                const response = await fetch(`${EXAM_API}/${exam.id}`);
+                const response = await fetch(`${EXAM_API}/${exam.id}`, { credentials: 'include' });
                 if (response.status === 404) { box.innerHTML = '<div class="text-danger small">Không tìm thấy đề thi trong CSDL.</div>'; return; }
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 const detail = await response.json();
@@ -955,6 +1219,7 @@
             const form = document.getElementById('examForm');
             form.reset();
             form.classList.remove('was-validated');
+            document.getElementById('examFormError').classList.add('d-none');
         }
 
         function openCreateExam() {
@@ -965,34 +1230,33 @@
             bootstrap.Modal.getOrCreateInstance(document.getElementById('examModal')).show();
         }
 
-        // Form SỬA: đề trong CSDL chưa sửa thì lấy bản mới nhất qua GET /api/exams/{id}
         async function editExam(id) {
             const exam = findExam(id);
             if (!exam) return;
             let data = exam;
-            if (isServerExam(exam) && !exam.status) {
-                try {
-                    const response = await fetch(`${EXAM_API}/${exam.id}`);
-                    if (response.ok) data = await response.json();
-                } catch (error) { console.error(error); }
-            }
+            try {
+                const response = await fetch(`${EXAM_API}/${exam.id}`, { credentials: 'include' });
+                if (response.ok) data = await response.json();
+            } catch (error) { console.error(error); }
             editingExamId = exam.id;
             resetExamForm();
             document.getElementById('examTitle').value = data.title || '';
             document.getElementById('examDesc').value = data.description || '';
             document.getElementById('examDuration').value = data.durationMinutes;
-            document.getElementById('examModalTitle').innerHTML = '<i class="bi bi-pencil-square text-warning me-2"></i>Cập nhật Đề thi (' + escapeHtml(typeof exam.id === 'number' ? 'ID ' + exam.id : exam.id) + ')';
+            document.getElementById('examModalTitle').innerHTML = '<i class="bi bi-pencil-square text-warning me-2"></i>Cập nhật Đề thi (ID ' + escapeHtml(exam.id) + ')';
             document.getElementById('btnSaveExam').innerText = 'Cập nhật thay đổi';
             bootstrap.Modal.getOrCreateInstance(document.getElementById('examModal')).show();
         }
 
-        function handleSaveExam(e) {
+        async function handleSaveExam(e) {
             e.preventDefault();
             const form = document.getElementById('examForm');
+            const errorBox = document.getElementById('examFormError');
+            errorBox.classList.add('d-none');
             const titleInput = document.getElementById('examTitle');
             titleInput.value = titleInput.value.trim();
             form.classList.add('was-validated');
-            if (!form.checkValidity()) return;   // tên trống / thời gian ngoài 1-300 -> dừng
+            if (!form.checkValidity()) return;
 
             const examData = {
                 title: titleInput.value,
@@ -1000,16 +1264,28 @@
                 durationMinutes: parseInt(document.getElementById('examDuration').value, 10)
             };
 
-            if (editingExamId === null) {
-                localNewExams.unshift({ id: 'M' + (nextLocalId++), ...examData, createdAt: new Date().toISOString(), status: 'new' });
-                examPage = 1;
-            } else if (isServerExam({ id: editingExamId })) {
-                localEdits[editingExamId] = examData;
-            } else {
-                Object.assign(localNewExams.find(x => x.id === editingExamId), examData);
+            const isEdit = editingExamId !== null;
+            const btn = document.getElementById('btnSaveExam');
+            btn.disabled = true;
+            try {
+                const response = await fetch(isEdit ? `${EXAM_API}/${editingExamId}` : EXAM_API, {
+                    method: isEdit ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(examData)
+                });
+                const result = await readWriteResult(response);
+                if (!result.ok) { errorBox.textContent = result.message; errorBox.classList.remove('d-none'); return; }
+                bootstrap.Modal.getInstance(document.getElementById('examModal')).hide();
+                showToast(result.message, 'success');
+                await Promise.all([loadExams(), fetchAllExams().catch(() => {})]);
+            } catch (error) {
+                console.error('Lỗi API đề thi:', error);
+                errorBox.textContent = NETWORK_ERROR;
+                errorBox.classList.remove('d-none');
+            } finally {
+                btn.disabled = false;
             }
-            bootstrap.Modal.getInstance(document.getElementById('examModal')).hide();
-            loadExams();
         }
 
         function deleteExam(id) {
@@ -1017,21 +1293,37 @@
             if (!exam) return;
             deletingExamId = exam.id;
             document.getElementById('deleteExamName').textContent = exam.title;
-            document.getElementById('deleteExamId').textContent = typeof exam.id === 'number' ? 'ID ' + exam.id : exam.id;
+            document.getElementById('deleteExamId').textContent = 'ID ' + exam.id;
+            document.getElementById('examDeleteError').classList.add('d-none');
             bootstrap.Modal.getOrCreateInstance(document.getElementById('examDeleteModal')).show();
         }
 
-        function confirmDeleteExam() {
-            if (isServerExam({ id: deletingExamId })) localDeleted.add(deletingExamId);
-            else localNewExams = localNewExams.filter(e => e.id !== deletingExamId);
-            deletingExamId = null;
-            bootstrap.Modal.getInstance(document.getElementById('examDeleteModal')).hide();
-            loadExams();
+        async function confirmDeleteExam() {
+            if (deletingExamId === null) return;
+            const errorBox = document.getElementById('examDeleteError');
+            const btn = document.getElementById('btnConfirmDeleteExam');
+            errorBox.classList.add('d-none');
+            btn.disabled = true;
+            try {
+                const response = await fetch(`${EXAM_API}/${deletingExamId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                const result = await readWriteResult(response);
+                if (!result.ok) { errorBox.textContent = result.message; errorBox.classList.remove('d-none'); return; }
+                bootstrap.Modal.getInstance(document.getElementById('examDeleteModal')).hide();
+                showToast(result.message, 'success');
+                deletingExamId = null;
+                await Promise.all([loadExams(), fetchAllExams().catch(() => {})]);
+            } catch (error) {
+                console.error('Lỗi xóa đề thi:', error);
+                errorBox.textContent = NETWORK_ERROR;
+                errorBox.classList.remove('d-none');
+            } finally {
+                btn.disabled = false;
+            }
         }
 
-        // =====================================================================
-        //  4. SPEAKING & WRITING - dữ liệu tĩnh theo cấu trúc đề của ETS
-        // =====================================================================
         const SW_TASKS = {
             speaking: [
                 {
@@ -1126,10 +1418,10 @@
             bootstrap.Modal.getOrCreateInstance(document.getElementById('swModal')).show();
         }
 
-        // Khởi động trang
-        function initAdmin() {
+        async function initAdmin() {
             renderSW();
-            loadDashboard();
+            await loadDashboard();
+            await checkAdminSession(true);
         }
     </script></body>
 </html>

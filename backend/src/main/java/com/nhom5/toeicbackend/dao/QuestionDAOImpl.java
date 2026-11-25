@@ -50,9 +50,15 @@ public class QuestionDAOImpl implements QuestionDAO {
     public boolean updateQuestion(Question q) {
         if (jdbcTemplate == null)
             return true;
+        if (q.getExamId() != null) {
+            String sql = "UPDATE questions SET exam_id = ?, content = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_answer = ?, explanation = ?, part = ? WHERE id = ?";
+            int rows = jdbcTemplate.update(sql, q.getExamId(), q.getContent(), q.getOptionA(), q.getOptionB(),
+                    q.getOptionC(), q.getOptionD(), q.getCorrectAnswer(), q.getExplanation(), q.getPart(), q.getId());
+            return rows > 0;
+        }
         String sql = "UPDATE questions SET content = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_answer = ?, explanation = ?, part = ? WHERE id = ?";
-        int rows = jdbcTemplate.update(sql, q.getContent(), q.getOptionA(), q.getOptionB(), q.getOptionC(),
-                q.getOptionD(), q.getCorrectAnswer(), q.getExplanation(), q.getPart(), q.getId());
+        int rows = jdbcTemplate.update(sql, q.getContent(), q.getOptionA(), q.getOptionB(),
+                q.getOptionC(), q.getOptionD(), q.getCorrectAnswer(), q.getExplanation(), q.getPart(), q.getId());
         return rows > 0;
     }
 

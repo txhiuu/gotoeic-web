@@ -8,12 +8,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -70,7 +72,8 @@ class BackendTest {
         long totalQuestions = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM questions", Long.class);
         long totalExams = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM exams", Long.class);
 
-        mockMvc.perform(get("/api/admin/statistics"))
+        MockHttpSession adminSession = loginAs("admin@gmail.com", "123456");
+        mockMvc.perform(get("/api/admin/statistics").session(adminSession))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalUsers").value(totalUsers))
                 .andExpect(jsonPath("$.totalQuestions").value(totalQuestions))
@@ -100,7 +103,8 @@ class BackendTest {
                             + "VALUES (1, ?, 'A', 'B', 'C', 'D', 'A', 'Test', 'Part 5')",
                     questionContent);
 
-            mockMvc.perform(get("/api/admin/statistics"))
+            MockHttpSession adminSession = loginAs("admin@gmail.com", "123456");
+            mockMvc.perform(get("/api/admin/statistics").session(adminSession))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalUsers").value(totalUsers + 1))
                     .andExpect(jsonPath("$.totalQuestions").value(totalQuestions + 1))
@@ -122,6 +126,7 @@ class BackendTest {
                             .param("size", "2")
                             .param("search", prefix))
                     .andExpect(status().isOk())
+                    .andExpect(header().string("X-Total-Count", "3"))
                     .andExpect(jsonPath("$.length()").value(2))
                     .andExpect(jsonPath("$[0].title").value(prefix + " 1"))
                     .andExpect(jsonPath("$[1].title").value(prefix + " 2"));
@@ -154,7 +159,8 @@ class BackendTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.questions.length()").value(2))
-                .andExpect(jsonPath("$.questions[0].content").isNotEmpty());
+                .andExpect(jsonPath("$.questions[0].content").isNotEmpty())
+                .andExpect(jsonPath("$.questions[0].correctAnswer").doesNotExist());
 
         mockMvc.perform(get("/api/exams/999"))
                 .andExpect(status().isNotFound())
@@ -178,14 +184,16 @@ class BackendTest {
     @Test
     @DisplayName("TC_BE_02: POST /api/exam/submit chấm điểm đúng và kết quả xuất hiện trong GET /api/history")
     void testNopBaiVaLuuLichSu() throws Exception {
+        MockHttpSession studentSession = loginAs("student@gmail.com", "123456");
         // Số lần làm bài trước khi nộp
-        String truoc = mockMvc.perform(get("/api/history").param("userId", "2"))
+        String truoc = mockMvc.perform(get("/api/history").session(studentSession).param("userId", "2"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         int soLanTruoc = JsonPath.read(truoc, "$.total");
 
         // Nộp bài: đúng cả 2 câu
         mockMvc.perform(post("/api/exam/submit")
+                        .session(studentSession)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"maBaiLam": 1, "userId": 2, "dsDapAnDaChon": {"1": "A", "2": "A"}}
@@ -197,7 +205,7 @@ class BackendTest {
                 .andExpect(jsonPath("$.score").value(10.0));
 
         // Lịch sử có thêm đúng 1 lần, lần mới nhất ở đầu danh sách
-        String sau = mockMvc.perform(get("/api/history").param("userId", "2"))
+        String sau = mockMvc.perform(get("/api/history").session(studentSession).param("userId", "2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.history[0].examId").value(1))
                 .andExpect(jsonPath("$.history[0].examTitle").value("De thi thu TOEIC Full Test 01"))
@@ -206,6 +214,31 @@ class BackendTest {
                 .andExpect(jsonPath("$.history[0].submittedAt").isNotEmpty())
                 .andReturn().getResponse().getContentAsString();
         assertEquals(soLanTruoc + 1, (int) JsonPath.read(sau, "$.total"));
+    }
+
+    @Test
+    @DisplayName("Nộp bài cần phiên đăng nhập và ít nhất một đáp án; không cho giả mạo userId")
+    void testNopBaiValidatesSessionAndAnswers() throws Exception {
+        String body = """
+                {"examId":1,"dsDapAnDaChon":{"1":"A","2":"-"}}
+                """;
+        mockMvc.perform(post("/api/exam/submit").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isUnauthorized());
+
+        MockHttpSession studentSession = loginAs("student@gmail.com", "123456");
+        mockMvc.perform(post("/api/exam/submit").session(studentSession)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"examId\":1,\"userId\":1,\"dsDapAnDaChon\":{\"1\":\"A\"}}"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/exam/submit").session(studentSession)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"examId\":1,\"dsDapAnDaChon\":{\"1\":\"-\",\"2\":\"-\"}}"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/exam/submit").session(studentSession)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.correctAnswers['1']").value("A"));
     }
 
     private String taoDuLieuDeThiPhanTrang() {
@@ -220,5 +253,13 @@ class BackendTest {
 
     private void xoaDuLieuDeThiPhanTrang(String prefix) {
         jdbcTemplate.update("DELETE FROM exams WHERE title LIKE ?", prefix + "%");
+    }
+
+    private MockHttpSession loginAs(String email, String password) throws Exception {
+        return (MockHttpSession) mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
+                .andExpect(status().isOk())
+                .andReturn().getRequest().getSession(false);
     }
 }

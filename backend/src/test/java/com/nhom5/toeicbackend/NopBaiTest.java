@@ -1,6 +1,5 @@
 package com.nhom5.toeicbackend;
 
-import com.nhom5.toeicbackend.controller.NopBaiController;
 import com.nhom5.toeicbackend.service.NopBaiService;
 
 import org.junit.jupiter.api.Disabled;
@@ -8,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,19 +23,12 @@ import static org.junit.jupiter.api.Assertions.*;
 public class NopBaiTest {
 
     @Autowired
-    private NopBaiController nopBaiController;
-
-    @Autowired
     private NopBaiService nopBaiService;
 
     @Test
     @DisplayName("TC_NB_01: Lấy thông tin bài làm trả về đúng đề thi và danh sách câu hỏi")
     void testLayThongTinNopBai() {
-        ResponseEntity<?> resp = nopBaiController.layThongTinNopBai(1);
-        assertEquals(200, resp.getStatusCode().value());
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> body = (Map<String, Object>) resp.getBody();
+        Map<String, Object> body = nopBaiService.layThongTinNopBai(1);
         assertNotNull(body);
         assertEquals(1, body.get("examId"));
         assertNotNull(body.get("title"));
@@ -55,16 +46,7 @@ public class NopBaiTest {
         dsDapAn.put("1", "A"); // Chọn câu 1 là A
         dsDapAn.put("2", "A"); // Chọn câu 2 là A
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("maBaiLam", 1);
-        payload.put("userId", 2); // Nguyễn Văn Sinh Viên
-        payload.put("dsDapAnDaChon", dsDapAn);
-
-        ResponseEntity<?> resp = nopBaiController.nopBai(payload);
-        assertEquals(200, resp.getStatusCode().value());
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> body = (Map<String, Object>) resp.getBody();
+        Map<String, Object> body = nopBaiService.nopBai(1, 2, dsDapAn);
         assertNotNull(body);
         assertTrue((Boolean) body.get("success"));
         assertTrue((Integer) body.get("totalCorrect") >= 1, "Số câu đúng phải >= 1");
